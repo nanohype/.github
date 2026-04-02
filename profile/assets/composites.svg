@@ -1,0 +1,140 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 500" font-family="system-ui, -apple-system, sans-serif">
+  <defs>
+    <style>
+      .bg { fill: #0D1117; }
+      .card { fill: #161B22; stroke: #30363D; stroke-width: 1; rx: 8; }
+      .card-hi { fill: #161B22; stroke: #34D399; stroke-width: 1.5; rx: 8; }
+      .title { fill: #E6EDF3; font-size: 13px; font-weight: 600; }
+      .sub { fill: #8B949E; font-size: 10px; }
+      .label { fill: #34D399; font-size: 9px; font-weight: 600; letter-spacing: 0.08em; }
+      .heading { fill: #E6EDF3; font-size: 16px; font-weight: 700; letter-spacing: -0.02em; }
+      .dim { fill: #8B949E; font-size: 11px; }
+      .sec { fill: #34D399; font-size: 10px; font-weight: 600; letter-spacing: 0.1em; }
+      .cmd { fill: #8B949E; font-size: 9px; }
+      .dot { fill: #34D399; }
+    </style>
+  </defs>
+
+  <rect class="bg" width="1200" height="500"/>
+
+  <text class="heading" x="40" y="36">Composite Stacks</text>
+  <text class="dim" x="40" y="52">Pre-configured template combinations for common AI project architectures</text>
+
+  <!-- Quick Start -->
+  <text class="sec" x="40" y="82">QUICK START</text>
+  <rect class="card-hi" x="40" y="90" width="170" height="40"/>
+  <text class="title" x="52" y="106">proof-of-concept</text>
+  <text class="sub" x="52" y="120">AI agent + eval harness</text>
+  <rect class="card" x="220" y="90" width="170" height="40"/>
+  <text class="title" x="232" y="106">eval-suite</text>
+  <text class="sub" x="232" y="120">Evals + prompts + guardrails</text>
+  <rect class="card" x="400" y="90" width="170" height="40"/>
+  <text class="title" x="412" y="106">mcp-toolkit</text>
+  <text class="sub" x="412" y="120">MCP server + prompts + evals</text>
+
+  <!-- Customer-Facing -->
+  <text class="sec" x="40" y="152">CUSTOMER-FACING</text>
+  <rect class="card-hi" x="40" y="160" width="170" height="40"/>
+  <text class="title" x="52" y="176">ai-chatbot</text>
+  <text class="sub" x="52" y="190">Full-stack chatbot</text>
+  <rect class="card" x="220" y="160" width="170" height="40"/>
+  <text class="title" x="232" y="176">ai-web-app</text>
+  <text class="sub" x="232" y="190">Next.js + RAG + auth + DB</text>
+  <rect class="card" x="400" y="160" width="170" height="40"/>
+  <text class="title" x="412" y="176">document-intelligence</text>
+  <text class="sub" x="412" y="190">RAG + service + storage</text>
+  <rect class="card" x="580" y="160" width="170" height="40"/>
+  <text class="title" x="592" y="176">rag-agent</text>
+  <text class="sub" x="592" y="190">Agent + RAG + vectors + DB</text>
+
+  <!-- Platform -->
+  <text class="sec" x="40" y="222">PLATFORM</text>
+  <rect class="card-hi" x="40" y="230" width="170" height="40"/>
+  <text class="title" x="52" y="246">production-api</text>
+  <text class="sub" x="52" y="260">Auth, DB, cache, queue, otel</text>
+  <rect class="card-hi" x="220" y="230" width="170" height="40"/>
+  <text class="title" x="232" y="246">ai-platform</text>
+  <text class="sub" x="232" y="260">Service + gateway + billing</text>
+  <rect class="card" x="400" y="230" width="170" height="40"/>
+  <text class="title" x="412" y="246">enterprise-ai</text>
+  <text class="sub" x="412" y="260">Full enterprise AI platform</text>
+  <rect class="card" x="580" y="230" width="170" height="40"/>
+  <text class="title" x="592" y="246">background-processor</text>
+  <text class="sub" x="592" y="260">Worker + queue + storage</text>
+
+  <!-- AI Operations -->
+  <text class="sec" x="40" y="292">AI OPERATIONS</text>
+  <rect class="card-hi" x="40" y="300" width="170" height="40"/>
+  <text class="title" x="52" y="316">cost-optimized-ai</text>
+  <text class="sub" x="52" y="330">Gateway + cache + observability</text>
+  <rect class="card" x="220" y="300" width="170" height="40"/>
+  <text class="title" x="232" y="316">safe-ai-agent</text>
+  <text class="sub" x="232" y="330">Agent + guardrails + evals</text>
+  <rect class="card" x="400" y="300" width="170" height="40"/>
+  <text class="title" x="412" y="316">multi-agent</text>
+  <text class="sub" x="412" y="330">A2A orchestration + tools</text>
+  <rect class="card-hi" x="580" y="300" width="170" height="40"/>
+  <text class="title" x="592" y="316">agent-team</text>
+  <text class="sub" x="592" y="330">Orchestrator + specialists</text>
+
+  <!-- Extensions & Tools -->
+  <text class="sec" x="40" y="362">EXTENSIONS &amp; TOOLS</text>
+  <rect class="card" x="40" y="370" width="170" height="40"/>
+  <text class="title" x="52" y="386">chrome-ai-extension</text>
+  <text class="sub" x="52" y="400">Browser ext + MCP + prompts</text>
+  <rect class="card" x="220" y="370" width="170" height="40"/>
+  <text class="title" x="232" y="386">vscode-ai-extension</text>
+  <text class="sub" x="232" y="400">Editor ext + MCP + prompts</text>
+  <rect class="card" x="400" y="370" width="170" height="40"/>
+  <text class="title" x="412" y="386">internal-tool</text>
+  <text class="sub" x="412" y="400">CLI or ext + MCP servers</text>
+  <rect class="card" x="580" y="370" width="170" height="40"/>
+  <text class="title" x="592" y="386">go-microservice</text>
+  <text class="sub" x="592" y="400">Go service + evals + deploy</text>
+
+  <!-- Right panel: Template layers -->
+  <rect class="card" x="800" y="78" width="370" height="370" rx="12"/>
+  <text class="sec" x="820" y="100">TEMPLATE LAYERS</text>
+
+  <rect x="820" y="110" width="330" height="40" rx="6" fill="#1C2333" stroke="#34D399" stroke-width="1" opacity="0.8"/>
+  <text class="label" x="836" y="126">AI SYSTEMS</text>
+  <text class="sub" x="836" y="140">agentic-loop · rag-pipeline · mcp-server · eval-harness · guardrails</text>
+
+  <rect x="820" y="158" width="330" height="40" rx="6" fill="#1C2333" stroke="#58A6FF" stroke-width="1" opacity="0.8"/>
+  <text x="836" y="174" fill="#58A6FF" font-size="9" font-weight="600" letter-spacing="0.1em">APPLICATIONS</text>
+  <text class="sub" x="836" y="188">ts-service · go-service · next-app · slack-bot · electron-app</text>
+
+  <line x1="985" y1="202" x2="985" y2="212" stroke="#30363D" stroke-width="1"/>
+  <polygon points="981,212 989,212 985,218" fill="#30363D"/>
+
+  <rect x="820" y="222" width="330" height="96" rx="6" fill="#1C2333" stroke="#D2A8FF" stroke-width="1" opacity="0.8"/>
+  <text x="836" y="238" fill="#D2A8FF" font-size="9" font-weight="600" letter-spacing="0.1em">COMPOSABLE MODULES</text>
+  <text class="sub" x="836" y="254">auth · database · cache · queue · rate-limit · storage</text>
+  <text class="sub" x="836" y="268">llm-gateway · vector-store · semantic-cache · billing</text>
+  <text class="sub" x="836" y="282">llm-providers · search · analytics · knowledge-base</text>
+  <text class="sub" x="836" y="296">project-mgmt · media · webhook · notifications · observability</text>
+  <text class="sub" x="836" y="310">llm-observability · feature-flags</text>
+
+  <line x1="985" y1="322" x2="985" y2="332" stroke="#30363D" stroke-width="1"/>
+  <polygon points="981,332 989,332 985,338" fill="#30363D"/>
+
+  <rect x="820" y="342" width="330" height="40" rx="6" fill="#1C2333" stroke="#FFA657" stroke-width="1" opacity="0.8"/>
+  <text x="836" y="358" fill="#FFA657" font-size="9" font-weight="600" letter-spacing="0.1em">INFRASTRUCTURE</text>
+  <text class="sub" x="836" y="372">aws · fly · gcp · vercel · k8s · cloudflare · druid · monitoring</text>
+
+  <line x1="985" y1="386" x2="985" y2="396" stroke="#30363D" stroke-width="1"/>
+  <polygon points="981,396 989,396 985,402" fill="#30363D"/>
+
+  <rect x="820" y="406" width="330" height="32" rx="6" fill="#1C2333" stroke="#30363D" stroke-width="1"/>
+  <text class="sub" x="836" y="420">@nanohype/sdk · CLI · template contract · composite contract</text>
+  <text class="cmd" x="836" y="432">scaffold · validate · render · compose</text>
+
+  <circle class="dot" cx="812" cy="130" r="3" opacity="0.6"/>
+  <circle class="dot" cx="812" cy="178" r="3" opacity="0.6"/>
+  <circle class="dot" cx="812" cy="270" r="3" opacity="0.6"/>
+  <circle class="dot" cx="812" cy="362" r="3" opacity="0.6"/>
+
+  <!-- Footer -->
+  <text class="dim" x="40" y="446">pluggable provider registries · production-ready skeletons</text>
+  <text class="cmd" x="40" y="462">npx nanohype scaffold --composite ai-chatbot --var ProjectName=my-bot</text>
+</svg>
