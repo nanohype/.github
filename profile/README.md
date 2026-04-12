@@ -6,7 +6,7 @@ AI systems from templates to production. A growing ecosystem of tools for buildi
 
 **[nanohype](https://github.com/nanohype/nanohype)** — Template catalog and SDK. 54 templates covering agents, RAG pipelines, MCP servers, eval harnesses, infrastructure, and composable modules. Composites wire templates into complete project architectures. A reference SDK handles validation, rendering, and orchestration.
 
-**[protohype](https://github.com/nanohype/protohype)** — Prototyped ideas built from nanohype templates. Real, runnable applications that compose AI systems, applications, and modules into working products. First project: **[sigint](https://github.com/nanohype/protohype/tree/main/sigint)** — competitive intelligence radar powered by AWS Bedrock.
+**[protohype](https://github.com/nanohype/protohype)** — Prototyped ideas built from nanohype templates. Real, runnable applications that compose AI systems, applications, and modules into working products. See the [projects catalog](https://github.com/nanohype/protohype#projects) for the current lineup.
 
 **[workshop](https://github.com/nanohype/workshop)** — Visual workflow builder. Graph-based pipelines where each node is a Claude Code session. Scaffold nanohype templates, chain agent review passes, and generate full workflows from composites — drag-and-drop.
 
