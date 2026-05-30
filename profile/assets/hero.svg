@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 380" role="img" aria-label="nanohype — agent factory. Context for AI agents, ready to consume.">
+  <defs>
+    <linearGradient id="beam" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3b82f6"/>
+      <stop offset="1" stop-color="#06b6d4"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.28" r="0.42">
+      <stop offset="0" stop-color="#3b82f6" stop-opacity="0.20"/>
+      <stop offset="1" stop-color="#3b82f6" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- card -->
+  <rect x="1" y="1" width="1278" height="378" rx="16" fill="#0a0f1e" stroke="#1c2950"/>
+  <rect x="1" y="1" width="1278" height="378" rx="16" fill="url(#glow)"/>
+
+  <!-- pixel-grid logo mark (scaled from favicon.svg) -->
+  <g transform="translate(589,58) scale(3.2)">
+    <rect x="8"  y="8"  width="6" height="6" fill="#3b82f6" opacity="0.85"/>
+    <rect x="18" y="8"  width="6" height="6" fill="#3b82f6" opacity="0.40"/>
+    <rect x="8"  y="18" width="6" height="6" fill="#3b82f6" opacity="0.40"/>
+    <rect x="18" y="18" width="6" height="6" fill="#60a5fa" opacity="0.95"/>
+  </g>
+
+  <!-- kicker -->
+  <text x="640" y="218" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="18" letter-spacing="7" fill="#60a5fa">AGENT FACTORY</text>
+
+  <!-- wordmark -->
+  <text x="640" y="296" text-anchor="middle" font-family="Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="96" font-weight="600" letter-spacing="-3" fill="#f8fafc">nanohype</text>
+
+  <!-- tagline -->
+  <text x="640" y="346" text-anchor="middle" font-family="Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="29" fill="#94a3b8">Context for AI agents, <tspan fill="url(#beam)" font-weight="600">ready to consume.</tspan></text>
+</svg>
