@@ -38,8 +38,8 @@
     <td>k8s-native control plane: the operator + CRDs that fence each Platform tenant — per-tenant IAM/KMS/S3, agentgateway, kagent, KEDA, a budget kill-switch, and an Argo eval pipeline on EKS + Bedrock.</td>
   </tr>
   <tr>
-    <td valign="top"><a href="https://github.com/nanohype/eks-gitops"><b>eks-gitops</b></a>&nbsp;·&nbsp;<a href="https://github.com/nanohype/aks-gitops"><b>aks-gitops</b></a></td>
-    <td>ArgoCD addon catalogs for EKS and AKS — ApplicationSets, sync-wave ordering, per-env Helm values.</td>
+    <td valign="top"><a href="https://github.com/nanohype/eks-gitops"><b>eks-gitops</b></a></td>
+    <td>ArgoCD addon catalog for EKS — ApplicationSets, sync-wave ordering, per-env Helm values.</td>
   </tr>
   <tr>
     <td valign="top"><a href="https://github.com/nanohype/kx"><b>kx</b></a></td>
