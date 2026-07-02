@@ -31,7 +31,11 @@
   <tr><td colspan="2"><sub><b>THE SUBSTRATE&nbsp;·&nbsp;what it ships onto</b></sub></td></tr>
   <tr>
     <td valign="top"><a href="https://github.com/nanohype/landing-zone"><b>landing-zone</b></a></td>
-    <td>Multi-cloud OpenTofu + Terragrunt substrate — AWS&nbsp;·&nbsp;GCP&nbsp;·&nbsp;Azure, multi-account isolation, GitOps-ready clusters.</td>
+    <td>The AWS substrate — OpenTofu + Terragrunt monorepo, multi-account isolation, GitOps-ready clusters.</td>
+  </tr>
+  <tr>
+    <td valign="top"><a href="https://github.com/nanohype/eks-fleet"><b>eks-fleet</b></a></td>
+    <td>The cluster vending machine — a Crossplane v2 composition that manufactures EKS clusters from a namespaced <code>Cluster</code> resource, wrapping the landing-zone modules.</td>
   </tr>
   <tr>
     <td valign="top"><a href="https://github.com/nanohype/eks-agent-platform"><b>eks-agent-platform</b></a></td>
@@ -80,5 +84,5 @@
 </table>
 
 <div align="center">
-  <sub>Start here&nbsp;→&nbsp;<a href="https://github.com/nanohype/nanohype/blob/main/docs/platform-reference.md"><b>Platform Reference</b></a> — the agent-consumable description of the whole stack.</sub>
+  <sub>Start here&nbsp;→&nbsp;<a href="https://github.com/nanohype/nanohype/blob/main/docs/platform-reference.md"><b>Platform Reference</b></a> — the agent-consumable description of the whole stack.&nbsp;·&nbsp;<a href="https://github.com/nanohype/.github/blob/main/profile/ROADMAP.md">Roadmap</a></sub>
 </div>
