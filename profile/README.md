@@ -86,5 +86,5 @@
 </table>
 
 <div align="center">
-  <sub>Start here&nbsp;→&nbsp;<a href="https://github.com/nanohype/nanohype/blob/main/docs/platform-reference.md"><b>Platform Reference</b></a> — the agent-consumable description of the whole stack.&nbsp;·&nbsp;<a href="https://github.com/nanohype/.github/blob/main/profile/ROADMAP.md">Roadmap</a></sub>
+  <sub>Deploy it on your AWS&nbsp;→&nbsp;<a href="https://nanohype.dev"><b>nanohype.dev</b></a>&nbsp;&nbsp;·&nbsp;&nbsp;Run it yourself&nbsp;→&nbsp;<a href="https://github.com/nanohype/nanohype/blob/main/docs/platform-reference.md"><b>Platform Reference</b></a>&nbsp;·&nbsp;<a href="https://github.com/nanohype/.github/blob/main/profile/ROADMAP.md">Roadmap</a></sub>
 </div>
