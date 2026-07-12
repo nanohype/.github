@@ -1,10 +1,12 @@
 <div align="center">
 
-<img alt="nanohype — agent factory. Context for AI agents, ready to consume." src="https://raw.githubusercontent.com/nanohype/.github/main/profile/assets/hero.svg" width="840">
+<img alt="nanohype — agent factory. A production agent platform, deployed on your AWS." src="https://raw.githubusercontent.com/nanohype/.github/main/profile/assets/hero.svg" width="840">
 
 <p>
-  A Kubernetes stack covering <b>design&nbsp;·&nbsp;build&nbsp;·&nbsp;verify&nbsp;·&nbsp;ship&nbsp;·&nbsp;operate</b>.<br />
-  Agents pick the layer their task belongs in and ship a real artifact instead of writing boilerplate.
+  <b>A production agent platform, deployed on your AWS.</b><br />
+  The Kubernetes-native substrate, the guardrails, and a first production app — stood up on your
+  account and explained end to end, not handed over as a repo to reverse-engineer.<br />
+  Or run the whole factory yourself; it's all open source.
 </p>
 
 <p>
