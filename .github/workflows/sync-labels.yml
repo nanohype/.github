@@ -16,9 +16,13 @@ on:
       repos:
         description: Space-separated repo names to sync (org-scoped).
         required: false
+        # Every repo where humans file issues. The clusters and tenants repos are
+        # portal-driven GitOps state, not an issue-tracking surface, so they're left out.
         default: >-
           portal landing-zone nanohype eks-agent-platform fab eks-fleet
-          eks-gitops cloudgov kx homebrew-tap
+          eks-gitops cloudgov kx homebrew-tap docs nanohype.dev
+          competitive-intelligence digest-pipeline incident-response
+          slack-knowledge-bot .github
 
 permissions:
   contents: read
