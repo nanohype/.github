@@ -1,0 +1,49 @@
+name: Sync issue labels
+
+# Applies the org baseline in labels.yml to every nanohype repo. GitHub inherits
+# issue and PR templates from this repo automatically, but labels are per-repo, so
+# they need this explicit sync.
+#
+# Manual by design (workflow_dispatch): label changes are rare and worth a
+# deliberate run. Non-destructive — it creates or updates the baseline labels and
+# never deletes a repo's own domain labels. Needs a token with repo-admin scope on
+# the targets, stored as the ORG_LABELS_TOKEN secret; the default GITHUB_TOKEN only
+# reaches this repo.
+
+on:
+  workflow_dispatch:
+    inputs:
+      repos:
+        description: Space-separated repo names to sync (org-scoped).
+        required: false
+        default: >-
+          portal landing-zone nanohype eks-agent-platform fab eks-fleet
+          eks-gitops cloudgov kx homebrew-tap
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Apply the baseline to each repo
+        env:
+          GH_TOKEN: ${{ secrets.ORG_LABELS_TOKEN }}
+        run: |
+          set -euo pipefail
+          count=$(yq '.labels | length' labels.yml)
+          for repo in ${{ inputs.repos }}; do
+            slug="nanohype/$repo"
+            echo "::group::$slug"
+            for i in $(seq 0 $((count - 1))); do
+              name=$(yq ".labels[$i].name" labels.yml)
+              color=$(yq ".labels[$i].color" labels.yml)
+              desc=$(yq ".labels[$i].description" labels.yml)
+              # --force creates the label or updates its color/description in place.
+              gh label create "$name" --repo "$slug" --color "$color" --description "$desc" --force
+            done
+            echo "::endgroup::"
+          done
