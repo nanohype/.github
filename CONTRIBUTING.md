@@ -79,3 +79,20 @@ contribute the code under the repo's license.
 - **Bugs and ideas** — open an issue on the affected repo.
 - **Security** — never a public issue; see [SECURITY.md](SECURITY.md).
 - **Conduct** — see [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
+
+## Issues and labels
+
+Issues here are not a backlog. Open one for a bug, an idea, or work that crosses
+repos or is blocked on something not yet in place — the kind that outlives a
+single session. Day-to-day planning lives in each contributor's `.plans/`
+(gitignored org-wide), not in the tracker. Two templates carry this: **Bug** and
+**Tracking / blocked work**.
+
+Labels come in two layers. The **baseline** — kind (`bug`, `enhancement`,
+`documentation`, `chore`), `security`, the `blocked` family (`blocked`,
+`blocked:substrate`, `blocked:upstream`), and `priority:{high,medium,low}` — is
+identical in every repo, defined once in
+[`labels.yml`](https://github.com/nanohype/.github/blob/main/labels.yml) and
+applied by a sync workflow. On top of it, a repo may add a few **domain** labels,
+always namespaced `key:value` (e.g. `provider:aws`, `cmd:iam`, `lang:go`); keep
+that layer small and never redefine a baseline label.

@@ -1,0 +1,51 @@
+# The org-wide baseline issue labels — the source of truth, applied to every
+# repo by .github/workflows/sync-labels.yml. GitHub inherits issue and PR
+# templates from this repo automatically; labels are per-repo, so they need the
+# explicit sync.
+#
+# Repos may ADD a thin layer of domain labels on top — always namespaced
+# key:value (cloudgov's provider:aws / cmd:iam, nanohype's lang:go / ai-systems)
+# — but must not redefine these. Keep the domain layer small: issues here are
+# rare and purposeful, not a backlog.
+
+labels:
+  # --- Kind ---
+  - name: bug
+    color: d73a4a
+    description: Something in a shipped artifact is broken
+  - name: enhancement
+    color: a2eeef
+    description: New capability or improvement
+  - name: documentation
+    color: 0075ca
+    description: Docs — content, structure, or accuracy
+  - name: chore
+    color: cfd3d7
+    description: Maintenance, deps, or tooling — no behavior change
+
+  # --- Cross-cutting ---
+  - name: security
+    color: b60205
+    description: Security-relevant (never disclose a vulnerability in a public issue — see SECURITY.md)
+
+  # --- Blocked: work waiting on something not yet in place, the dominant type ---
+  - name: blocked
+    color: e11d21
+    description: Waiting on something not yet in place
+  - name: "blocked:substrate"
+    color: e11d21
+    description: Blocked on unbuilt cloud or cluster substrate
+  - name: "blocked:upstream"
+    color: e11d21
+    description: Blocked on an external or upstream dependency
+
+  # --- Priority ---
+  - name: "priority:high"
+    color: d93f0b
+    description: Address soon
+  - name: "priority:medium"
+    color: fbca04
+    description: Normal priority
+  - name: "priority:low"
+    color: 0e8a16
+    description: Nice to have
