@@ -97,67 +97,67 @@ Generated from the repos themselves — components from <code>git ls-files</code
 <details>
 <summary><b>How to read this</b>&nbsp;&nbsp;<sub>what each colour means, what containment means, and when an arrow is worth spending</sub></summary>
 <br />
-<a href="https://raw.githubusercontent.com/nanohype/.github/main/profile/assets/atlas/00-legend-light.svg"><img alt="How to read this — colour, containment, and when an arrow is spent" src="https://raw.githubusercontent.com/nanohype/.github/main/profile/assets/atlas/00-legend-light.svg" width="920"></a>
+<img alt="How to read this — colour, containment, and when an arrow is spent" src="https://raw.githubusercontent.com/nanohype/.github/main/profile/assets/atlas/00-legend-light.svg" width="920">
 </details>
 
 <details open>
 <summary><b>1 · The factory</b>&nbsp;&nbsp;<sub>every repo is what the factory consumes, what it produces, or the factory itself</sub></summary>
 <br />
-<a href="https://raw.githubusercontent.com/nanohype/.github/main/profile/assets/atlas/01-org-light.svg"><img alt="The factory — every repo is what the factory consumes, what it produces, or the factory itself" src="https://raw.githubusercontent.com/nanohype/.github/main/profile/assets/atlas/01-org-light.svg" width="920"></a>
+<img alt="The factory — every repo is what the factory consumes, what it produces, or the factory itself" src="https://raw.githubusercontent.com/nanohype/.github/main/profile/assets/atlas/01-org-light.svg" width="920">
 </details>
 
 <details>
 <summary><b>2 · Cloud substrate</b>&nbsp;&nbsp;<sub>landing-zone by layer — organization components run once, everything below them is per-environment</sub></summary>
 <br />
-<a href="https://raw.githubusercontent.com/nanohype/.github/main/profile/assets/atlas/02-substrate-light.svg"><img alt="Cloud substrate — landing-zone by layer" src="https://raw.githubusercontent.com/nanohype/.github/main/profile/assets/atlas/02-substrate-light.svg" width="920"></a>
+<img alt="Cloud substrate — landing-zone by layer" src="https://raw.githubusercontent.com/nanohype/.github/main/profile/assets/atlas/02-substrate-light.svg" width="920">
 </details>
 
 <details>
 <summary><b>3 · Network</b>&nbsp;&nbsp;<sub>one component, two modes — own a VPC, or build nothing and re-export someone else's</sub></summary>
 <br />
-<a href="https://raw.githubusercontent.com/nanohype/.github/main/profile/assets/atlas/03-network-light.svg"><img alt="Network — one component, two modes: create a VPC or adopt an existing one" src="https://raw.githubusercontent.com/nanohype/.github/main/profile/assets/atlas/03-network-light.svg" width="920"></a>
+<img alt="Network — one component, two modes: create a VPC or adopt an existing one" src="https://raw.githubusercontent.com/nanohype/.github/main/profile/assets/atlas/03-network-light.svg" width="920">
 </details>
 
 <details>
 <summary><b>4 · Cluster addons</b>&nbsp;&nbsp;<sub>one ApplicationSet per group, ordered by sync wave — a cluster opts in with a label</sub></summary>
 <br />
-<a href="https://raw.githubusercontent.com/nanohype/.github/main/profile/assets/atlas/04-addons-light.svg"><img alt="Cluster addons — one ApplicationSet per group, ordered by sync wave" src="https://raw.githubusercontent.com/nanohype/.github/main/profile/assets/atlas/04-addons-light.svg" width="920"></a>
+<img alt="Cluster addons — one ApplicationSet per group, ordered by sync wave" src="https://raw.githubusercontent.com/nanohype/.github/main/profile/assets/atlas/04-addons-light.svg" width="920">
 </details>
 
 <details>
 <summary><b>5 · Control plane</b>&nbsp;&nbsp;<sub>ten CRDs, nine reconcilers, one binary — each zone is a reconciler, and what sits in it is what that reconciler keeps true</sub></summary>
 <br />
-<a href="https://raw.githubusercontent.com/nanohype/.github/main/profile/assets/atlas/05-control-plane-light.svg"><img alt="Control plane — ten CRDs, nine reconcilers, one binary" src="https://raw.githubusercontent.com/nanohype/.github/main/profile/assets/atlas/05-control-plane-light.svg" width="920"></a>
+<img alt="Control plane — ten CRDs, nine reconcilers, one binary" src="https://raw.githubusercontent.com/nanohype/.github/main/profile/assets/atlas/05-control-plane-light.svg" width="920">
 </details>
 
 <details>
 <summary><b>6 · Request path</b>&nbsp;&nbsp;<sub>one invocation, app to model and back — the app holds no AWS credential and signs nothing</sub></summary>
 <br />
-<a href="https://raw.githubusercontent.com/nanohype/.github/main/profile/assets/atlas/06-request-path-light.svg"><img alt="Request path — one invocation, app to model and back" src="https://raw.githubusercontent.com/nanohype/.github/main/profile/assets/atlas/06-request-path-light.svg" width="920"></a>
+<img alt="Request path — one invocation, app to model and back" src="https://raw.githubusercontent.com/nanohype/.github/main/profile/assets/atlas/06-request-path-light.svg" width="920">
 </details>
 
 <details>
 <summary><b>7 · Identity &amp; isolation</b>&nbsp;&nbsp;<sub>isolation is a spectrum, not a boolean — two orthogonal dials</sub></summary>
 <br />
-<a href="https://raw.githubusercontent.com/nanohype/.github/main/profile/assets/atlas/07-identity-light.svg"><img alt="Identity and isolation — two orthogonal dials, not one boolean" src="https://raw.githubusercontent.com/nanohype/.github/main/profile/assets/atlas/07-identity-light.svg" width="920"></a>
+<img alt="Identity and isolation — two orthogonal dials, not one boolean" src="https://raw.githubusercontent.com/nanohype/.github/main/profile/assets/atlas/07-identity-light.svg" width="920">
 </details>
 
 <details>
 <summary><b>8 · Observability</b>&nbsp;&nbsp;<sub>one neutral OTLP waist — which backends exist behind it is a property of the cluster tier</sub></summary>
 <br />
-<a href="https://raw.githubusercontent.com/nanohype/.github/main/profile/assets/atlas/08-observability-light.svg"><img alt="Observability — one neutral OTLP waist, backends behind it set by cluster tier" src="https://raw.githubusercontent.com/nanohype/.github/main/profile/assets/atlas/08-observability-light.svg" width="920"></a>
+<img alt="Observability — one neutral OTLP waist, backends behind it set by cluster tier" src="https://raw.githubusercontent.com/nanohype/.github/main/profile/assets/atlas/08-observability-light.svg" width="920">
 </details>
 
 <details>
 <summary><b>9 · Governance loops</b>&nbsp;&nbsp;<sub>budget, SLO and eval each close a loop that can stop a tenant — recovery from the budget one is human</sub></summary>
 <br />
-<a href="https://raw.githubusercontent.com/nanohype/.github/main/profile/assets/atlas/09-governance-light.svg"><img alt="Governance loops — budget, SLO and eval each close a loop that can stop a tenant" src="https://raw.githubusercontent.com/nanohype/.github/main/profile/assets/atlas/09-governance-light.svg" width="920"></a>
+<img alt="Governance loops — budget, SLO and eval each close a loop that can stop a tenant" src="https://raw.githubusercontent.com/nanohype/.github/main/profile/assets/atlas/09-governance-light.svg" width="920">
 </details>
 
 <details>
 <summary><b>10 · Lifecycle</b>&nbsp;&nbsp;<sub>two vending lines, one layer apart — both write manifests to git, and the cluster always wins on read</sub></summary>
 <br />
-<a href="https://raw.githubusercontent.com/nanohype/.github/main/profile/assets/atlas/10-lifecycle-light.svg"><img alt="Lifecycle — two vending lines, one layer apart" src="https://raw.githubusercontent.com/nanohype/.github/main/profile/assets/atlas/10-lifecycle-light.svg" width="920"></a>
+<img alt="Lifecycle — two vending lines, one layer apart" src="https://raw.githubusercontent.com/nanohype/.github/main/profile/assets/atlas/10-lifecycle-light.svg" width="920">
 </details>
 
 <div align="center">

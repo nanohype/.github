@@ -31,10 +31,11 @@ const body = await readFile(README, "utf8");
 
 // Only this repo's own raw URLs; shields.io badges and the like are not ours to
 // vouch for and go down for reasons no gate here can fix.
-// De-duplicated by URL, not by match object. Each diagram appears twice — once
-// as the link target and once as the image source — and a Set of objects
-// de-duplicates neither, so the gate was checking every asset twice and
-// reporting a count nobody could reconcile with the page.
+//
+// Keyed by URL rather than collected into a Set of match objects, which would
+// de-duplicate nothing — every match is a distinct object even when the URL
+// repeats. A page that names the same asset twice should be checked once, and
+// report a count that reconciles with what a reader can count on the page.
 const seen = new Map<string, { url: string; path: string }>();
 for (const m of body.matchAll(
   /https:\/\/raw\.githubusercontent\.com\/nanohype\/\.github\/[^/]+\/([^\s"'<>)]+)/g,
