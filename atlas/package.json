@@ -1,0 +1,29 @@
+{
+  "name": "@nanohype/atlas",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.32.1",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "typecheck": "tsc --noEmit",
+    "check": "node scripts/check-model.ts",
+    "emit": "node scripts/emit.ts ../profile/assets/atlas",
+    "shots": "node scripts/shoot.ts shots"
+  },
+  "dependencies": {
+    "@excalidraw/excalidraw": "0.18.1",
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.4",
+    "@vitejs/plugin-react": "6.0.5",
+    "playwright": "1.62.1",
+    "typescript": "7.0.2",
+    "vite": "8.2.0"
+  },
+  "description": "Architecture diagrams for the nanohype stack, and the generator that produces them.",
+  "license": "Apache-2.0"
+}

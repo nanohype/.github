@@ -1,0 +1,112 @@
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  height: 100%;
+}
+
+body {
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+.atlas {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.atlas-bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 14px;
+  background: #101014;
+  color: #f4f4f5;
+  border-bottom: 1px solid #26262c;
+  flex-wrap: wrap;
+}
+
+.atlas-brand {
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+
+.atlas-brand span {
+  color: #8b8b96;
+  font-weight: 400;
+}
+
+.atlas-tabs {
+  display: flex;
+  gap: 4px;
+  flex: 1;
+  flex-wrap: wrap;
+}
+
+.atlas-tabs button {
+  background: transparent;
+  border: 1px solid transparent;
+  color: #a1a1aa;
+  padding: 5px 10px;
+  border-radius: 7px;
+  font-size: 12.5px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.atlas-tabs button:hover {
+  background: #1c1c22;
+  color: #e4e4e7;
+}
+
+.atlas-tabs button.is-active {
+  background: #2a2a33;
+  border-color: #3f3f4a;
+  color: #fff;
+}
+
+.atlas-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.atlas-toggle {
+  background: transparent;
+  border: 1px solid #3f3f4a;
+  color: #a1a1aa;
+  padding: 6px 12px;
+  border-radius: 7px;
+  font-size: 12.5px;
+  cursor: pointer;
+  min-width: 64px;
+}
+
+.atlas-toggle:hover {
+  color: #e4e4e7;
+}
+
+.atlas-export {
+  background: #2a2a33;
+  border: 1px solid #3f3f4a;
+  color: #e4e4e7;
+  padding: 6px 12px;
+  border-radius: 7px;
+  font-size: 12.5px;
+  cursor: pointer;
+}
+
+.atlas-export:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.atlas-canvas {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}

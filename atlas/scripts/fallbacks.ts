@@ -1,0 +1,10 @@
+import { chromium } from "playwright";
+const b = await chromium.launch();
+const p = await b.newPage();
+const warns: string[] = [];
+p.on("console", (m) => { if (m.text().includes("[atlas]")) warns.push(m.text()); });
+await p.goto("http://127.0.0.1:5273", { waitUntil: "networkidle" });
+await p.waitForSelector(".excalidraw__canvas");
+await p.waitForTimeout(4000);
+console.log(warns.length ? warns.join("\n") : "no fallbacks — A* found a route for every edge");
+await b.close();

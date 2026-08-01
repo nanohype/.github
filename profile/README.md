@@ -41,7 +41,7 @@
   </tr>
   <tr>
     <td valign="top"><a href="https://github.com/nanohype/eks-agent-platform"><b>eks-agent-platform</b></a></td>
-    <td>k8s-native control plane: the operator + CRDs that fence each Platform tenant — per-tenant IAM/KMS/S3, agentgateway, kagent, KEDA, a budget kill-switch, and an Argo eval pipeline on EKS + Bedrock.</td>
+    <td>k8s-native control plane: the operator + CRDs that fence each Platform tenant — per-tenant IAM/KMS/S3, an Envoy AI Gateway egress path, KEDA autoscaling, a budget kill-switch, and an Argo eval pipeline on EKS + Bedrock.</td>
   </tr>
   <tr>
     <td valign="top"><a href="https://github.com/nanohype/eks-gitops"><b>eks-gitops</b></a></td>
@@ -84,6 +84,61 @@
     <td><code>brew install</code> for the nanohype CLIs.</td>
   </tr>
 </table>
+
+<div align="center">
+
+### The architecture, in eleven views
+
+<sub>Colour means the same thing on every page · containment means ownership · an arrow is spent only where position cannot say it<br />
+Generated from the repos themselves — components from <code>git ls-files</code>, sync waves from the ApplicationSet annotations, cadences from the operator.</sub>
+
+<br />
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/nanohype/.github/main/profile/assets/atlas/01-org-dark.svg">
+  <img alt="Every repo plays one of three roles" src="https://raw.githubusercontent.com/nanohype/.github/main/profile/assets/atlas/01-org-light.svg" width="900">
+</picture>
+
+<sub><b>The factory.</b> What it consumes, what it produces, and the deploy substrate in between.</sub>
+
+<br /><br />
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/nanohype/.github/main/profile/assets/atlas/06-request-path-dark.svg">
+  <img alt="One invocation, app to model and back" src="https://raw.githubusercontent.com/nanohype/.github/main/profile/assets/atlas/06-request-path-light.svg" width="900">
+</picture>
+
+<sub><b>The request path.</b> The app holds no AWS credential and signs nothing — the gateway does, as the tenant.</sub>
+
+<br /><br />
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/nanohype/.github/main/profile/assets/atlas/05-control-plane-dark.svg">
+  <img alt="Ten CRDs, nine reconcilers, one binary" src="https://raw.githubusercontent.com/nanohype/.github/main/profile/assets/atlas/05-control-plane-light.svg" width="900">
+</picture>
+
+<sub><b>The control plane.</b> Each zone is a reconciler; what sits inside it is what that reconciler creates and keeps true.</sub>
+
+<br /><br />
+
+
+<table>
+  <tr><td><a href="https://github.com/nanohype/.github/blob/main/profile/assets/atlas/00-legend-light.svg"><b>How to read this</b></a></td><td><sub>the conventions — colour, containment, lines</sub></td></tr>
+  <tr><td><a href="https://github.com/nanohype/.github/blob/main/profile/assets/atlas/01-org-light.svg"><b>The factory</b></a></td><td><sub>every repo's role: consumed, produced, or the factory itself</sub></td></tr>
+  <tr><td><a href="https://github.com/nanohype/.github/blob/main/profile/assets/atlas/02-substrate-light.svg"><b>Cloud substrate</b></a></td><td><sub>37 OpenTofu components, by layer</sub></td></tr>
+  <tr><td><a href="https://github.com/nanohype/.github/blob/main/profile/assets/atlas/03-network-light.svg"><b>Network</b></a></td><td><sub>one component, two modes — own a VPC or adopt one</sub></td></tr>
+  <tr><td><a href="https://github.com/nanohype/.github/blob/main/profile/assets/atlas/04-addons-light.svg"><b>Cluster addons</b></a></td><td><sub>the ArgoCD catalog, ordered by sync wave</sub></td></tr>
+  <tr><td><a href="https://github.com/nanohype/.github/blob/main/profile/assets/atlas/05-control-plane-light.svg"><b>Control plane</b></a></td><td><sub>ten CRDs, nine reconcilers, one binary</sub></td></tr>
+  <tr><td><a href="https://github.com/nanohype/.github/blob/main/profile/assets/atlas/06-request-path-light.svg"><b>Request path</b></a></td><td><sub>one invocation, app to model and back</sub></td></tr>
+  <tr><td><a href="https://github.com/nanohype/.github/blob/main/profile/assets/atlas/07-identity-light.svg"><b>Identity &amp; isolation</b></a></td><td><sub>who can reach what, and the tiers that bound it</sub></td></tr>
+  <tr><td><a href="https://github.com/nanohype/.github/blob/main/profile/assets/atlas/08-observability-light.svg"><b>Observability</b></a></td><td><sub>one OTLP waist, two backend tiers</sub></td></tr>
+  <tr><td><a href="https://github.com/nanohype/.github/blob/main/profile/assets/atlas/09-governance-light.svg"><b>Governance loops</b></a></td><td><sub>budget, SLO and eval — each can stop a tenant</sub></td></tr>
+  <tr><td><a href="https://github.com/nanohype/.github/blob/main/profile/assets/atlas/10-lifecycle-light.svg"><b>Lifecycle</b></a></td><td><sub>intent → git → reconciled infrastructure</sub></td></tr>
+</table>
+
+<sub>How they are built, and the rules they follow → <a href="https://github.com/nanohype/.github/tree/main/atlas"><b>atlas/</b></a></sub>
+
+</div>
 
 <div align="center">
   <sub>Deploy it on your AWS&nbsp;→&nbsp;<a href="https://nanohype.dev"><b>nanohype.dev</b></a>&nbsp;&nbsp;·&nbsp;&nbsp;Run it yourself&nbsp;→&nbsp;<a href="https://github.com/nanohype/nanohype/blob/main/docs/platform-reference.md"><b>Platform Reference</b></a>&nbsp;·&nbsp;<a href="https://github.com/nanohype/.github/blob/main/profile/ROADMAP.md">Roadmap</a></sub>

@@ -1,0 +1,80 @@
+name: atlas
+
+# The diagrams on the org profile are generated, and generated artifacts that
+# are committed drift the moment someone edits the model and forgets to
+# re-emit. This regenerates them and fails if the result differs from what is
+# checked in — the same reason a lockfile is committed and verified rather than
+# trusted.
+
+on:
+  push:
+    branches: [main]
+    paths: ['atlas/**', 'profile/assets/atlas/**', '.github/workflows/atlas.yml']
+  pull_request:
+    paths: ['atlas/**', 'profile/assets/atlas/**', '.github/workflows/atlas.yml']
+
+permissions:
+  contents: read
+
+jobs:
+  atlas:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: atlas
+    steps:
+      - uses: actions/checkout@v5
+
+      # `defaults.run.working-directory` applies to `run:` steps only — an
+      # action's inputs are still resolved from the repo root, so both of these
+      # have to name the atlas path explicitly. Without it action-setup looks
+      # for a root package.json that does not exist here and fails before
+      # installing anything.
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: atlas/package.json
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: atlas/.nvmrc
+          cache: pnpm
+          cache-dependency-path: atlas/pnpm-lock.yaml
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Every edge resolves to a real node
+        run: pnpm check
+
+      - name: Install Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Regenerate the diagrams
+        run: pnpm emit
+
+      # The gate compares a fingerprint of the scene, not the rendered SVGs.
+      #
+      # Byte-comparing the SVGs was tried and does not work across platforms:
+      # text elements are sized by measuring the string, and Chromium measures
+      # differently on macOS and Linux — 0.44px on a short label, 1.5px on a
+      # page title. Every one of the 22 files differed purely from running on a
+      # different OS, which is a gate that fails for a reason nobody can act on,
+      # and those get deleted rather than fixed.
+      #
+      # The fingerprint carries what comes from the model — every box's
+      # position and size, every colour, every string — and omits the measured
+      # width of a text run. It still catches the failure this exists for: a
+      # perspective edited without re-emitting.
+      - name: Committed diagrams match the model
+        working-directory: .
+        run: |
+          if git diff --quiet -- profile/assets/atlas/atlas.fingerprint.json; then
+            echo "committed diagrams match the model"
+            exit 0
+          fi
+          echo "::error::A perspective changed without the diagrams being re-emitted. Run 'pnpm emit' in atlas/ and commit the result."
+          git diff --stat -- profile/assets/atlas/atlas.fingerprint.json
+          git diff -- profile/assets/atlas/atlas.fingerprint.json | head -60
+          exit 1
