@@ -12,12 +12,21 @@
  *
  *   1. Pick the pair of facing sides from the boxes' actual geometry, not from
  *      the order the edge was declared in.
- *   2. Fan the anchors along each side when several edges share it, so parallel
+ *   2. Aim both ends of an edge at one shared line, so a route between facing
+ *      boxes is straight rather than stepped.
+ *   3. Separate the anchors that still collide on a side, so parallel
  *      relationships stay legible as separate lines.
  *
+ * Step 2 is what keeps short edges clean, and it is the step that is easy to
+ * leave out. Choosing each end independently — fanning one side across its
+ * edges while the other end takes its centre — asks the route to make a lateral
+ * move that neither end agreed on, inside whatever gap happens to separate the
+ * boxes. Between neighbours that gap is NODE_GAP, so a 90px offset gets folded
+ * into 32px of corridor and the arrow comes out as a hook.
+ *
  * The result is that an arrow leaves the side of the box nearest its target and
- * arrives on the side nearest its source, spread out, which is what makes a
- * dense diagram readable.
+ * arrives on the side nearest its source, on the same line where the geometry
+ * allows one, which is what makes a dense diagram readable.
  */
 import type { Box, PlacedNode } from "./layout.ts";
 import { RouteGrid } from "./router.ts";
@@ -203,16 +212,94 @@ export function facingSides(from: PlacedNode, to: PlacedNode): [Side, Side] {
 }
 
 /**
- * Position `i` of `count` along a side, as a normalized anchor.
- *
- * Anchors are spread across the middle 70% of the side rather than its whole
- * width. Arrows landing right on a corner read as belonging to the adjacent
- * side, and the label tldraw centres on the arrow ends up over the box.
+ * Anchors use the middle 70% of a side, never its whole width. An arrow landing
+ * on a corner reads as belonging to the adjacent side, and the label centred on
+ * it ends up over the box.
  */
-function anchorOn(side: Side, i: number, count: number): Anchor {
-  const spread = 0.7;
-  const t = count <= 1 ? 0.5 : 0.5 - spread / 2 + (spread * i) / (count - 1);
+const SPREAD = 0.7;
 
+/**
+ * Closest two anchors may sit on one side before their arrowheads merge.
+ *
+ * Only an upper bound: a crowded side falls back to spreading its edges evenly,
+ * which is always narrower than this and always fits.
+ */
+const MIN_SEPARATION = 26;
+
+/**
+ * The usable stretch of one side, in absolute scene coordinates.
+ *
+ * Facing sides are always an opposite pair, so both ends of an edge vary along
+ * the same axis — x for a top/bottom pair, y for a left/right one. That shared
+ * axis is what makes a single agreed coordinate possible.
+ */
+function usableSpan(box: PlacedNode, side: Side): { lo: number; hi: number } {
+  const start = isVertical(side) ? box.x : box.y;
+  const length = isVertical(side) ? box.w : box.h;
+  const inset = ((1 - SPREAD) / 2) * length;
+  return { lo: start + inset, hi: start + length - inset };
+}
+
+function clamp(value: number, lo: number, hi: number): number {
+  return Math.min(hi, Math.max(lo, value));
+}
+
+/**
+ * The coordinate each end of an edge would attach at if it were the only edge.
+ *
+ * Where the two usable spans overlap there is a line both ends can sit on, and
+ * the route between them is straight. The midpoint of the two centres is the
+ * point on that line closest to what each end would have picked alone, so it is
+ * the least surprising place to put it.
+ *
+ * Spans that do not overlap have no such line — a narrow box beside a wide one,
+ * offset past its edge. Each end then aims at the other's centre and the route
+ * takes the corner the geometry genuinely calls for, rather than a corner an
+ * arbitrary choice created.
+ */
+function aim(from: PlacedNode, fromSide: Side, to: PlacedNode, toSide: Side): [number, number] {
+  const a = usableSpan(from, fromSide);
+  const b = usableSpan(to, toSide);
+  const centreA = (a.lo + a.hi) / 2;
+  const centreB = (b.lo + b.hi) / 2;
+
+  const lo = Math.max(a.lo, b.lo);
+  const hi = Math.min(a.hi, b.hi);
+  if (lo <= hi) {
+    const shared = clamp((centreA + centreB) / 2, lo, hi);
+    return [shared, shared];
+  }
+  return [clamp(centreB, a.lo, a.hi), clamp(centreA, b.lo, b.hi)];
+}
+
+/**
+ * Push apart anchors that want the same place on a side, keeping their order.
+ *
+ * Order is what stops siblings crossing, so the passes only ever move an anchor
+ * along the side, never past its neighbour. `separation` is capped at what an
+ * even spread would give, so the chain always fits between `lo` and `hi` and a
+ * crowded side degrades to that even spread rather than overflowing the box.
+ */
+function separate(desired: number[], span: { lo: number; hi: number }): number[] {
+  const count = desired.length;
+  const out = desired.map((d) => clamp(d, span.lo, span.hi));
+  if (count <= 1) return out;
+
+  const separation = Math.min(MIN_SEPARATION, (span.hi - span.lo) / (count - 1));
+  for (let i = 1; i < count; i++) out[i] = Math.max(out[i], out[i - 1] + separation);
+
+  // The forward pass can run the last anchor off the end of the side; sliding
+  // the whole chain back preserves every gap it just opened.
+  const overflow = out[count - 1] - span.hi;
+  if (overflow > 0) for (let i = 0; i < count; i++) out[i] -= overflow;
+  for (let i = count - 2; i >= 0; i--) out[i] = Math.min(out[i], out[i + 1] - separation);
+
+  return out.map((d) => clamp(d, span.lo, span.hi));
+}
+
+/** An absolute coordinate along a side, back as a normalized anchor. */
+function anchorAt(side: Side, coord: number, box: PlacedNode): Anchor {
+  const t = isVertical(side) ? (coord - box.x) / box.w : (coord - box.y) / box.h;
   switch (side) {
     case "top":
       return { x: t, y: 0 };
@@ -244,6 +331,7 @@ export function routeEdges(
   obstacles: Box[] = [],
   bounds?: Box,
   soft: Box[] = [],
+  zones: Box[] = [],
 ): RoutedEdge[] {
   const byId = new Map(nodes.map((n) => [n.node.id, n]));
 
@@ -253,7 +341,8 @@ export function routeEdges(
     const to = byId.get(edge.to);
     if (!from || !to) return null;
     const [fromSide, toSide] = facingSides(from, to);
-    return { edge, index, from, to, fromSide, toSide };
+    const [aimFrom, aimTo] = aim(from, fromSide, to, toSide);
+    return { edge, index, from, to, fromSide, toSide, aimFrom, aimTo };
   });
 
   // Second pass: bucket by (node, side) so we know how many share each side.
@@ -284,8 +373,16 @@ export function routeEdges(
         crossingOrderKey(side, direction === "out" ? b.to : b.from),
     );
 
+    // Every entry in a bucket shares one node and one side, so one span covers
+    // them all.
+    const owner = direction === "out" ? ordered[0].from : ordered[0].to;
+    const coords = separate(
+      ordered.map((entry) => (direction === "out" ? entry.aimFrom : entry.aimTo)),
+      usableSpan(owner, side),
+    );
+
     ordered.forEach((entry, i) => {
-      const anchor = anchorOn(side, i, ordered.length);
+      const anchor = anchorAt(side, coords[i], owner);
       if (direction === "out") fromAnchors.set(entry.index, anchor);
       else toAnchors.set(entry.index, anchor);
     });
@@ -295,7 +392,15 @@ export function routeEdges(
   // each finished route used, so later edges are nudged into their own lane
   // instead of stacking on top of the first one that got there.
   const grid = bounds
-    ? new RouteGrid(bounds.x - 200, bounds.y - 220, bounds.w + 400, bounds.h + 440, obstacles, soft)
+    ? new RouteGrid(
+        bounds.x - 200,
+        bounds.y - 220,
+        bounds.w + 400,
+        bounds.h + 440,
+        obstacles,
+        soft,
+        zones,
+      )
     : null;
 
   const fallbacks: string[] = [];

@@ -297,6 +297,7 @@ export function renderPerspective(
   ];
 
   const labels: Array<{ edge: (typeof perspective.edges)[number]; path: Point[]; color: string }> = [];
+  const corners: Box[] = [];
 
   for (const routed of routeEdges(
     perspective.edges,
@@ -305,6 +306,7 @@ export function renderPerspective(
     obstacles,
     placed.bounds,
     [...placed.titleBoxes, ...placed.zoneBands],
+    placed.zones.map(({ x, y, w, h }) => ({ x, y, w, h })),
   )) {
     const { edge, path, from, to } = routed;
     const origin = path[0];
@@ -366,6 +368,17 @@ export function renderPerspective(
     if (edge.label) {
       labels.push({ edge, path, color: swatch.stroke });
     }
+
+    // Every corner on the page, so no chip can be laid over one.
+    //
+    // Occluding an arrow is the point — but only where it is straight, because
+    // the eye completes a line that disappears under a word and comes out the
+    // other side going the same way. A corner offers nothing to complete: cover
+    // it and one arrow reads as two unrelated stubs pointing nowhere. Straight
+    // runs stay fair game, so this costs almost nothing in placement freedom.
+    for (const point of path.slice(1, -1)) {
+      corners.push({ x: point.x - 11, y: point.y - 11, w: 22, h: 22 });
+    }
   }
 
   // Chips are added to the obstacle set as they are placed, so each one also
@@ -381,7 +394,7 @@ export function renderPerspective(
     // text is centred on the chip rather than positioned from its left edge.
     const w = text.length * TYPE.edgeLabel * 0.58 + 14;
     const h = TYPE.edgeLabel * LINE_HEIGHT + 8;
-    const at = labelAnchor(path, { w, h }, [...obstacles, ...placed.titleBoxes, ...taken]);
+    const at = labelAnchor(path, { w, h }, [...obstacles, ...placed.titleBoxes, ...corners, ...taken]);
     taken.push({ x: at.x - w / 2, y: at.y - h / 2, w, h });
 
     out.push({

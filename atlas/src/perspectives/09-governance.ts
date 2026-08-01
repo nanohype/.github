@@ -18,14 +18,20 @@ export const governance: Perspective = {
         title: "Budget → kill switch",
         note: "fires at ≥120% of monthlyUsd",
         color: SEMANTIC.aws,
-        cols: 3,
+        // Two columns, with the tick and the sum spanning both, so the two
+        // reads sit side by side under the one that triggers them and above the
+        // one that consumes them. In a three-wide row the same six nodes put a
+        // box between the tick and the second thing it reads, and that edge has
+        // to climb over it — the shape of the loop is what removes the detour,
+        // not the router.
+        cols: 2,
         nodes: [
-          { id: "tick", label: "BudgetReconciler tick", sub: "1h prod · 5m dev", color: SEMANTIC.aws },
+          { id: "tick", label: "BudgetReconciler tick", sub: "1h prod · 5m dev", color: SEMANTIC.aws, wide: true },
           { id: "athena", label: "Athena CUR sum", sub: "month-to-date, by PlatformId", color: SEMANTIC.aws },
           { id: "inflight", label: "CloudWatch in-flight", sub: "last 24h estimate", color: SEMANTIC.aws },
-          { id: "pct", label: "spend + in-flight → pct", sub: "written to .status", color: SEMANTIC.aws },
+          { id: "pct", label: "spend + in-flight → pct", sub: "written to .status", color: SEMANTIC.aws, wide: true },
           { id: "ebbus", label: "EventBridge bus", sub: "BudgetBreach event", color: SEMANTIC.aws },
-          { id: "sfn", label: "Step Functions", sub: "the switch itself", color: SEMANTIC.security },
+          { id: "sfn", label: "Step Functions", sub: "started by an EventBridge rule", color: SEMANTIC.security },
         ],
       },
     ],
@@ -72,11 +78,15 @@ export const governance: Perspective = {
         note: "a score gates a deploy",
         color: SEMANTIC.telemetry,
         cols: 2,
+        // Read boustrophedon: right along the top row, down, then left along
+        // the bottom. Listing them in flow order instead puts the third node
+        // under the first, so the middle edge crosses the zone diagonally and
+        // has to turn inside the gap between two rows.
         nodes: [
           { id: "cron", label: "Argo CronWorkflow", sub: "eval-runner template", color: SEMANTIC.gitops },
           { id: "cases", label: "golden + adversarial", sub: "injection cases too", color: SEMANTIC.telemetry },
-          { id: "score", label: "status.lastScore", sub: "written back by the runner", color: SEMANTIC.telemetry },
           { id: "analysis", label: "AnalysisTemplate", sub: "Argo Rollouts gate", color: SEMANTIC.gitops },
+          { id: "score", label: "status.lastScore", sub: "written back by the runner", color: SEMANTIC.telemetry },
         ],
       },
       {
@@ -108,8 +118,12 @@ export const governance: Perspective = {
     { from: "tick", to: "inflight", color: SEMANTIC.aws },
     { from: "athena", to: "pct", color: SEMANTIC.aws },
     { from: "inflight", to: "pct", color: SEMANTIC.aws },
-    { from: "pct", to: "ebbus", label: "≥120%", color: SEMANTIC.aws },
-    { from: "ebbus", to: "sfn", label: "rule → StartExecution", color: SEMANTIC.security },
+    // No labels on these two. Both join neighbours a node-gap apart, and a chip
+    // does not fit in that gap — it gets pushed clear of the zone entirely and
+    // reads as floating text belonging to nothing. The threshold is in the zone
+    // note and the trigger is on the node itself, so neither is lost.
+    { from: "pct", to: "ebbus", color: SEMANTIC.aws },
+    { from: "ebbus", to: "sfn", color: SEMANTIC.security },
     { from: "sfn", to: "detach", color: SEMANTIC.security },
     { from: "sfn", to: "tagrole", color: SEMANTIC.security },
     { from: "tagrole", to: "getrole", label: "detected as drift", color: SEMANTIC.platform },
@@ -123,5 +137,13 @@ export const governance: Perspective = {
     { from: "score", to: "analysis", color: SEMANTIC.gitops },
     { from: "burnrate", to: "syncoff", color: SEMANTIC.gitops },
     { from: "burnrate", to: "persona", color: SEMANTIC.telemetry },
+  ],
+  callouts: [
+    {
+      lane: 0,
+      title: "Why the switch takes the long way",
+      body: "EventBridge cannot call a Kubernetes API, so the switch only changes AWS state and the operator's existing loop picks the change up as drift. Nothing new is coupled to the cluster; the price is one reconcile interval of lag.",
+      color: SEMANTIC.note,
+    },
   ],
 };
