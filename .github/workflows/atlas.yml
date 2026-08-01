@@ -54,19 +54,27 @@ jobs:
       - name: Regenerate the diagrams
         run: pnpm emit
 
-      # Seeds and SVG mask ids are pinned in the generator, so identical input
-      # produces identical bytes and a diff here means the model moved without
-      # the committed SVGs following.
+      # The gate compares a fingerprint of the scene, not the rendered SVGs.
       #
-      # On failure the reporter prints the first differing region rather than a
-      # file list. "22 files changed" reads the same whether the diagrams are
-      # genuinely stale or the renderer varies by platform, and those call for
-      # opposite responses.
-      - name: Committed SVGs match the model
+      # Byte-comparing the SVGs was tried and does not work across platforms:
+      # text elements are sized by measuring the string, and Chromium measures
+      # differently on macOS and Linux — 0.44px on a short label, 1.5px on a
+      # page title. Every one of the 22 files differed purely from running on a
+      # different OS, which is a gate that fails for a reason nobody can act on,
+      # and those get deleted rather than fixed.
+      #
+      # The fingerprint carries what comes from the model — every box's
+      # position and size, every colour, every string — and omits the measured
+      # width of a text run. It still catches the failure this exists for: a
+      # perspective edited without re-emitting.
+      - name: Committed diagrams match the model
         working-directory: .
         run: |
-          node atlas/scripts/diff-report.ts profile/assets/atlas
-          if ! git diff --quiet -- profile/assets/atlas; then
-            echo "::error::Committed diagrams do not match a fresh render (see the first differing region above)."
-            exit 1
+          if git diff --quiet -- profile/assets/atlas/atlas.fingerprint.json; then
+            echo "committed diagrams match the model"
+            exit 0
           fi
+          echo "::error::A perspective changed without the diagrams being re-emitted. Run 'pnpm emit' in atlas/ and commit the result."
+          git diff --stat -- profile/assets/atlas/atlas.fingerprint.json
+          git diff -- profile/assets/atlas/atlas.fingerprint.json | head -60
+          exit 1

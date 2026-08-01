@@ -39,7 +39,13 @@ export default function App() {
     // fontEpoch is a rebuild trigger, not a value: the first pass may be
     // measured against fallback metrics, and bumping the epoch re-runs it once
     // the real faces are usable. See useFonts.ts for why it cannot be a gate.
-    () => PERSPECTIVES.map((p) => convertToExcalidrawElements(renderPerspective(p, theme))),
+    () => PERSPECTIVES.map((p) =>
+        // regenerateIds defaults to true, which throws away the ids the
+        // renderer assigns and replaces them with random ones. That leaks
+        // straight into the exported SVG's mask ids and into any fingerprint
+        // taken of the scene, so nothing downstream can be reproducible.
+        convertToExcalidrawElements(renderPerspective(p, theme), { regenerateIds: false }),
+      ),
     [theme, fontEpoch],
   );
 

@@ -72,7 +72,7 @@ await page.waitForSelector(".excalidraw__canvas", { timeout: 30_000 });
 // rather than the fallback metrics of the first build.
 await page.waitForTimeout(2500);
 
-const files = await page.evaluate(async () => {
+const { out: files, fingerprint } = await page.evaluate(async () => {
   const atlas = (
     window as unknown as {
       __atlas: {
@@ -84,6 +84,7 @@ const files = await page.evaluate(async () => {
   ).__atlas;
 
   const out: Array<{ name: string; body: string }> = [];
+
 
   for (const [index, perspective] of atlas.perspectives.entries()) {
     const elements = atlas.scenes[index];
@@ -121,7 +122,48 @@ const files = await page.evaluate(async () => {
     }
   }
 
-  return out;
+  // A platform-independent fingerprint of the scene, written beside the SVGs.
+  //
+  // Byte-comparing the SVGs cannot work: text elements are sized by measuring
+  // the string, and Chromium measures differently on macOS and Linux — observed
+  // at 0.44px on a short label and 1.5px on a page title. Real, and not
+  // something a rounding tolerance can absorb.
+  //
+  // So the fingerprint carries everything that comes from the *model* — every
+  // box's position and size, every colour, every string — and omits the one
+  // thing that comes from the renderer: the measured width of a text run. That
+  // still catches the failure this gate exists for (a perspective edited
+  // without re-emitting) and no longer fails for running on a different OS.
+  const fingerprint: Record<string, unknown> = {};
+  for (const [index, perspective] of atlas.perspectives.entries()) {
+    const elements = (atlas.scenes[index] ?? []) as Array<Record<string, unknown>>;
+    fingerprint[perspective.id] = elements.map((e) => {
+      const base: Record<string, unknown> = {
+        type: e.type,
+        // Deliberately no id. Text bound to a container is minted by the
+        // converter rather than passed in, so it gets a fresh random id on
+        // every build and `regenerateIds: false` does not reach it. Element
+        // order is deterministic and position plus text already identify a
+        // shape, so the id earns nothing here and costs reproducibility.
+        x: Math.round(e.x as number),
+        y: Math.round(e.y as number),
+        stroke: e.strokeColor,
+        bg: e.backgroundColor,
+      };
+      if (e.type === "text") {
+        // Height follows from the line count, which is ours; width does not.
+        base.text = e.text;
+        base.fontSize = e.fontSize;
+      } else {
+        base.w = Math.round(e.width as number);
+        base.h = Math.round(e.height as number);
+      }
+      if (e.type === "arrow") base.points = (e.points as number[][]).length;
+      return base;
+    });
+  }
+
+  return { out, fingerprint };
 });
 
 /**
@@ -155,6 +197,8 @@ for (const file of files) {
   const dir = isSvg ? svgDir : sceneDir;
   await writeFile(`${dir}/${file.name}`, isSvg ? normalizeMaskIds(file.body) : file.body, "utf8");
 }
+
+await writeFile(`${svgDir}/atlas.fingerprint.json`, `${JSON.stringify(fingerprint, null, 2)}\n`, "utf8");
 
 await browser.close();
 server?.kill();
