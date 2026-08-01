@@ -143,18 +143,26 @@ const { out: files, fingerprint } = await page.evaluate(async () => {
         // Deliberately no id. Text bound to a container is minted by the
         // converter rather than passed in, so it gets a fresh random id on
         // every build and `regenerateIds: false` does not reach it. Element
-        // order is deterministic and position plus text already identify a
+        // order is deterministic, and position plus text already identify a
         // shape, so the id earns nothing here and costs reproducibility.
-        x: Math.round(e.x as number),
         y: Math.round(e.y as number),
         stroke: e.strokeColor,
         bg: e.backgroundColor,
       };
       if (e.type === "text") {
-        // Height follows from the line count, which is ours; width does not.
+        // No `x` and no `width`. Both are renderer outputs for a centred text
+        // element: Excalidraw measures the string, then places it at
+        // `centre - width/2`. Excluding width alone was not enough — CI still
+        // saw 1px shifts, because the x it derives from that width carries the
+        // same platform variance one layer down.
+        //
+        // Nothing is lost. A caption's position is derived from the node it
+        // sits under, and that node's rectangle is fingerprinted in full, so a
+        // layout change still moves something this file records.
         base.text = e.text;
         base.fontSize = e.fontSize;
       } else {
+        base.x = Math.round(e.x as number);
         base.w = Math.round(e.width as number);
         base.h = Math.round(e.height as number);
       }
