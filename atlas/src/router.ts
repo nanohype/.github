@@ -40,12 +40,20 @@ const TURN = 140;
 const CLEARANCE = 26;
 const REUSE = 34;
 /**
- * Crossing a heading. Charged heavily but not forbidden: a zone title spans
- * most of its zone's width, so treating it as solid walls an edge out of the
- * zone entirely. Expensive-but-possible keeps every route reachable and still
- * pushes lines off the words in all but the pinched cases.
+ * Crossing a heading or a zone border. The value is a balance, and both ends
+ * of it were wrong before this one.
+ *
+ * Too low and a line tracks a dashed border for its whole length, which is
+ * indistinguishable from the border. Too high — 260 was — and one perpendicular
+ * crossing (about three cells) costs more than detouring a hundred cells around
+ * the zone, so routes traced rectangles around whole zones and those detours
+ * read as extra frames on the page.
+ *
+ * At 70 a crossing costs ~210 and a detour costs thousands, so edges cross
+ * where they should; travelling *along* a band still accumulates far faster
+ * than any alternative, which is the case worth preventing.
  */
-const SOFT = 260;
+const SOFT = 70;
 
 interface Box {
   x: number;

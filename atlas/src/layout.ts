@@ -155,13 +155,21 @@ export function layout(perspective: Perspective): Layout {
 
       zones.push({ zone, x, y, w, h });
 
-      // Bands hugging the zone outline, half inside and half outside.
-      const BAND = 16;
+      // Bands along the zone outline, asymmetric: shallow outside, deep enough
+      // inside to cover the whole of ZONE_PAD.
+      //
+      // A symmetric 16px band left a 24px gutter between it and the first node
+      // — ample room for a line to run parallel to the border just inside it,
+      // which is the exact thing the band exists to prevent and looked like a
+      // second frame around the zone. The inner reach now spans the padding, so
+      // a route inside a zone travels between nodes rather than around them.
+      const OUT = 12;
+      const IN = ZONE_PAD;
       zoneBands.push(
-        { x: x - BAND / 2, y: y - BAND / 2, w, h: BAND },
-        { x: x - BAND / 2, y: y + h - BAND / 2, w, h: BAND },
-        { x: x - BAND / 2, y: y - BAND / 2, w: BAND, h },
-        { x: x + w - BAND / 2, y: y - BAND / 2, w: BAND, h },
+        { x: x - OUT, y: y - OUT, w: w + OUT * 2, h: OUT + IN },
+        { x: x - OUT, y: y + h - IN, w: w + OUT * 2, h: OUT + IN },
+        { x: x - OUT, y: y - OUT, w: OUT + IN, h: h + OUT * 2 },
+        { x: x + w - IN, y: y - OUT, w: OUT + IN, h: h + OUT * 2 },
       );
 
       // Width is estimated from the longer of title and note; over-estimating

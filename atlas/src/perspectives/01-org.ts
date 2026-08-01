@@ -93,6 +93,15 @@ export const org: Perspective = {
             sub: "IAM · cost · posture · drift",
             color: SEMANTIC.security,
           },
+        ],
+      },
+      {
+        id: "aside",
+        title: "Beside it",
+        note: "neither consumed nor deployed",
+        color: SEMANTIC.gitops,
+        cols: 1,
+        nodes: [
           {
             id: "kx",
             label: "kx",
@@ -168,10 +177,6 @@ export const org: Perspective = {
   edges: [
     { from: "nanohype", to: "fab", label: "vocabulary", dashed: true },
     { from: "standards", to: "fab", label: "the bar", dashed: true },
-    { from: "fab", to: "ci", label: "builds", color: SEMANTIC.platform },
-    { from: "fab", to: "dp", color: SEMANTIC.platform },
-    { from: "fab", to: "ir", color: SEMANTIC.platform },
-    { from: "fab", to: "skb", color: SEMANTIC.platform },
     { from: "landing-zone", to: "eks-fleet", label: "wrapped by", color: SEMANTIC.aws },
     { from: "eks-fleet", to: "clusters-repo", label: "reads claims", dashed: true },
     { from: "eks-gitops", to: "eap", label: "installs", color: SEMANTIC.k8s },
