@@ -21,7 +21,7 @@
  *
  * `--fetch` additionally follows every outbound link on the page.
  */
-import { readFile } from "node:fs/promises";
+import { readFile, readdir } from "node:fs/promises";
 import { existsSync } from "node:fs";
 
 const doFetch = process.argv.includes("--fetch");
@@ -57,6 +57,24 @@ for (const { url, path } of urls) {
     continue;
   }
   console.log(`ok    ${path}`);
+}
+
+// And the inverse: every diagram that exists must be on the page.
+//
+// The check above only proves the page's references resolve, which says nothing
+// about a diagram the page forgot. Adding a perspective is two steps — write it,
+// then reference it — and the second is the easy one to skip, with no symptom:
+// the page still renders, CI is still green, and the new view is simply absent.
+// Same silent-absence shape as a broken image, caught from the other side.
+const ATLAS_DIR = "../profile/assets/atlas";
+const referenced = new Set(urls.map((u) => u.path));
+for (const name of (await readdir(ATLAS_DIR)).sort()) {
+  if (!name.endsWith(".svg")) continue;
+  const path = `profile/assets/atlas/${name}`;
+  if (!referenced.has(path)) {
+    console.error(`FAIL  emitted but not on the profile: ${name}`);
+    bad += 1;
+  }
 }
 
 // Links, not just images. The image checks would have happily shipped a
