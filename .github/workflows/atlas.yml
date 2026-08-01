@@ -67,6 +67,18 @@ jobs:
       # position and size, every colour, every string — and omits the measured
       # width of a text run. It still catches the failure this exists for: a
       # perspective edited without re-emitting.
+      # Path-only on a pull request: the URLs name `main`, so a PR adding a
+      # diagram legitimately points at a ref that does not have it yet, and
+      # failing there would teach people to ignore this gate. On main the same
+      # check also fetches every image and every link.
+      - name: The profile page will render
+        run: |
+          if [ "${{ github.event_name }}" = "push" ]; then
+            node scripts/check-readme-assets.ts --fetch
+          else
+            node scripts/check-readme-assets.ts
+          fi
+
       - name: Committed diagrams match the model
         working-directory: .
         run: |
