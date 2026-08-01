@@ -41,7 +41,7 @@
   </tr>
   <tr>
     <td valign="top"><a href="https://github.com/nanohype/eks-agent-platform"><b>eks-agent-platform</b></a></td>
-    <td>k8s-native control plane: the operator + CRDs that fence each Platform tenant — per-tenant IAM/KMS/S3, agentgateway, kagent, KEDA, a budget kill-switch, and an Argo eval pipeline on EKS + Bedrock.</td>
+    <td>k8s-native control plane: the operator + CRDs that fence each Platform tenant — per-tenant IAM/KMS/S3, an Envoy AI Gateway egress path, KEDA autoscaling, a budget kill-switch, and an Argo eval pipeline on EKS + Bedrock.</td>
   </tr>
   <tr>
     <td valign="top"><a href="https://github.com/nanohype/eks-gitops"><b>eks-gitops</b></a></td>
@@ -84,6 +84,37 @@
     <td><code>brew install</code> for the nanohype CLIs.</td>
   </tr>
 </table>
+
+<div align="center">
+
+### The architecture, in eleven views
+
+<sub>Colour means the same thing on every page · position means ownership · an arrow is spent only where position cannot say it<br />
+Generated from the repos themselves — components from <code>git ls-files</code>, sync waves from the ApplicationSet annotations.</sub>
+
+<br />
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/nanohype/.github/main/profile/assets/atlas/06-request-path-dark.svg">
+  <img alt="One invocation, app to model and back" src="https://raw.githubusercontent.com/nanohype/.github/main/profile/assets/atlas/06-request-path-light.svg" width="900">
+</picture>
+
+<sub><b>The request path.</b> The app holds no AWS credential and signs nothing — the gateway does, as the tenant.</sub>
+
+<br /><br />
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/nanohype/.github/main/profile/assets/atlas/05-control-plane-dark.svg">
+  <img alt="Ten CRDs, nine reconcilers, one binary" src="https://raw.githubusercontent.com/nanohype/.github/main/profile/assets/atlas/05-control-plane-light.svg" width="900">
+</picture>
+
+<sub><b>The control plane.</b> Each zone is a reconciler; what sits inside it is what that reconciler creates and keeps true.</sub>
+
+<br />
+
+<sub>The other eight — the factory, cloud substrate, network, cluster addons, identity &amp; isolation, observability, governance loops, lifecycle — plus how to read them:<br /><a href="https://github.com/nanohype/.github/tree/main/atlas"><b>atlas/</b></a></sub>
+
+</div>
 
 <div align="center">
   <sub>Deploy it on your AWS&nbsp;→&nbsp;<a href="https://nanohype.dev"><b>nanohype.dev</b></a>&nbsp;&nbsp;·&nbsp;&nbsp;Run it yourself&nbsp;→&nbsp;<a href="https://github.com/nanohype/nanohype/blob/main/docs/platform-reference.md"><b>Platform Reference</b></a>&nbsp;·&nbsp;<a href="https://github.com/nanohype/.github/blob/main/profile/ROADMAP.md">Roadmap</a></sub>

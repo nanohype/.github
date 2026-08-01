@@ -1,0 +1,61 @@
+name: atlas
+
+# The diagrams on the org profile are generated, and generated artifacts that
+# are committed drift the moment someone edits the model and forgets to
+# re-emit. This regenerates them and fails if the result differs from what is
+# checked in — the same reason a lockfile is committed and verified rather than
+# trusted.
+
+on:
+  push:
+    branches: [main]
+    paths: ['atlas/**', 'profile/assets/atlas/**', '.github/workflows/atlas.yml']
+  pull_request:
+    paths: ['atlas/**', 'profile/assets/atlas/**', '.github/workflows/atlas.yml']
+
+permissions:
+  contents: read
+
+jobs:
+  atlas:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: atlas
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: atlas/.nvmrc
+          cache: pnpm
+          cache-dependency-path: atlas/pnpm-lock.yaml
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Every edge resolves to a real node
+        run: pnpm check
+
+      - name: Install Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Regenerate the diagrams
+        run: pnpm emit
+
+      # `git diff --exit-code` is the whole gate. Excalidraw stamps no
+      # timestamps or random seeds into an exported SVG, and the layout is
+      # deterministic by construction, so identical input really does produce
+      # identical bytes — a diff here means the model moved and the committed
+      # SVGs did not follow.
+      - name: Committed SVGs match the model
+        run: |
+          if ! git diff --exit-code --stat -- ../profile/assets/atlas; then
+            echo
+            echo "The committed diagrams are stale. Run 'pnpm emit' in atlas/ and commit the result."
+            exit 1
+          fi

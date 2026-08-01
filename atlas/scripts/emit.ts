@@ -1,0 +1,179 @@
+/**
+ * Write every perspective to disk as SVG + `.excalidraw`, headlessly.
+ *
+ * The dev server is a convenience for looking at the atlas; these files are the
+ * deliverable. GitHub renders README markdown with scripts and iframes
+ * stripped, so an image is the only thing that can embed — and an SVG carries
+ * no Excalidraw code with it, only geometry.
+ *
+ * The `.excalidraw` beside each one is what keeps a diagram correctable by a
+ * human: it opens at excalidraw.com, so fixing a box never requires running
+ * this project.
+ *
+ * Usage: node scripts/emit.ts [outDir] [--url=http://127.0.0.1:5273]
+ */
+import { spawn } from "node:child_process";
+import { mkdir, readdir, rm, writeFile } from "node:fs/promises";
+import { chromium } from "playwright";
+
+const args = process.argv.slice(2);
+const svgDir = args.find((a) => !a.startsWith("--")) ?? "out";
+const sceneDir = (args.find((a) => a.startsWith("--scenes=")) ?? "--scenes=out").slice(9);
+const url = (args.find((a) => a.startsWith("--url=")) ?? "--url=http://127.0.0.1:5273").slice(6);
+
+/**
+ * Reuse a dev server if one is already up, otherwise start one and stop it
+ * again. Without this the command only works when someone happens to be running
+ * `pnpm dev`, which makes it useless as a CI gate — and a gate that cannot run
+ * in CI is a gate that stops being true.
+ */
+async function reachable(): Promise<boolean> {
+  try {
+    await fetch(url, { signal: AbortSignal.timeout(1200) });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+let server: ReturnType<typeof spawn> | null = null;
+if (!(await reachable())) {
+  server = spawn("npx", ["vite", "--port", new URL(url).port, "--host", "127.0.0.1"], {
+    stdio: "ignore",
+    detached: false,
+  });
+  const deadline = Date.now() + 45_000;
+  while (!(await reachable())) {
+    if (Date.now() > deadline) throw new Error(`vite did not come up at ${url}`);
+    await new Promise((r) => setTimeout(r, 400));
+  }
+}
+
+// Only the SVGs are swept, and only SVGs — the target is a shared assets
+// directory, so a blanket recursive delete would take anything else living
+// beside them. Sweeping first still matters: a renamed perspective would
+// otherwise leave its old file behind, and a stale diagram in a README is worse
+// than a missing one.
+await mkdir(svgDir, { recursive: true });
+for (const name of await readdir(svgDir)) {
+  if (name.endsWith(".svg")) await rm(`${svgDir}/${name}`);
+}
+await mkdir(sceneDir, { recursive: true });
+
+const browser = await chromium.launch();
+const page = await browser.newPage({ viewport: { width: 1800, height: 1100 } });
+
+const errors: string[] = [];
+page.on("pageerror", (e) => errors.push(e.message));
+
+await page.goto(url, { waitUntil: "networkidle" });
+await page.waitForSelector(".excalidraw__canvas", { timeout: 30_000 });
+// Let the font epoch fire so the scene is measured against the real faces
+// rather than the fallback metrics of the first build.
+await page.waitForTimeout(2500);
+
+const files = await page.evaluate(async () => {
+  const atlas = (
+    window as unknown as {
+      __atlas: {
+        scenes: unknown[][];
+        perspectives: Array<{ id: string; name: string }>;
+        exportToSvg: (opts: unknown) => Promise<SVGSVGElement>;
+      };
+    }
+  ).__atlas;
+
+  const out: Array<{ name: string; body: string }> = [];
+
+  for (const [index, perspective] of atlas.perspectives.entries()) {
+    const elements = atlas.scenes[index];
+    if (!elements || elements.length === 0) continue;
+    const stem = `${String(index).padStart(2, "0")}-${perspective.id}`;
+
+    out.push({
+      name: `${stem}.excalidraw`,
+      body: JSON.stringify(
+        {
+          type: "excalidraw",
+          version: 2,
+          source: "nanohype-atlas",
+          elements,
+          appState: { viewBackgroundColor: "#ffffff", gridSize: null },
+          files: {},
+        },
+        null,
+        2,
+      ),
+    });
+
+    for (const theme of ["light", "dark"] as const) {
+      const svg = await atlas.exportToSvg({
+        elements,
+        files: null,
+        exportPadding: 40,
+        appState: {
+          exportBackground: true,
+          exportWithDarkMode: theme === "dark",
+          viewBackgroundColor: theme === "dark" ? "#121212" : "#ffffff",
+        },
+      });
+      out.push({ name: `${stem}-${theme}.svg`, body: svg.outerHTML });
+    }
+  }
+
+  return out;
+});
+
+/**
+ * Replace Excalidraw's generated SVG mask ids with sequential ones.
+ *
+ * A labelled arrow is drawn with a mask that punches the label out of the line,
+ * and `exportToSvg` mints a fresh random id for each one on every render. Those
+ * ids are not derived from any element, so they cannot be pinned from the model
+ * — and they are the last thing standing between this output and byte-for-byte
+ * reproducibility.
+ *
+ * That matters for two reasons: a regeneration should produce an empty diff
+ * unless the model changed, and the CI check that catches stale committed
+ * diagrams is a plain `git diff`. Renaming in first-appearance order is stable
+ * because element order is.
+ */
+function normalizeMaskIds(svg: string): string {
+  const seen = new Map<string, string>();
+  return svg.replace(/mask-[A-Za-z0-9_-]{6,}/g, (id) => {
+    let stable = seen.get(id);
+    if (!stable) {
+      stable = `mask-${seen.size}`;
+      seen.set(id, stable);
+    }
+    return stable;
+  });
+}
+
+for (const file of files) {
+  const isSvg = file.name.endsWith(".svg");
+  const dir = isSvg ? svgDir : sceneDir;
+  await writeFile(`${dir}/${file.name}`, isSvg ? normalizeMaskIds(file.body) : file.body, "utf8");
+}
+
+await browser.close();
+server?.kill();
+
+const svgs = files.filter((f) => f.name.endsWith(".svg"));
+// A README renders the SVG on a machine that has never heard of Excalifont, so
+// an SVG that merely *references* the font by name renders in a fallback and
+// every label sits at the wrong width. Inlined faces are what make the file
+// portable, and it is worth failing loudly if they are missing.
+const inlined = svgs.filter((f) => f.body.includes("@font-face")).length;
+
+console.log(`wrote ${svgs.length} svg to ${svgDir}/ and ${files.length - svgs.length} scenes to ${sceneDir}/`);
+console.log(`  fonts inlined in ${inlined}/${svgs.length} svgs`);
+
+if (errors.length > 0) {
+  console.error(`\npage errors:\n  ${[...new Set(errors)].join("\n  ")}`);
+  process.exit(1);
+}
+if (inlined < svgs.length) {
+  console.error("\nFAIL: some SVGs reference fonts they do not carry — they will render wrong off this machine");
+  process.exit(1);
+}
