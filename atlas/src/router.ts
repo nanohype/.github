@@ -54,6 +54,25 @@ const REUSE = 34;
  * than any alternative, which is the case worth preventing.
  */
 const SOFT = 70;
+/**
+ * Travelling inside a zone that is neither end of this edge, per cell.
+ *
+ * A zone means ownership on these pages, so an arrow passing through one it has
+ * no part in reads as belonging to it. The two zones an edge actually connects
+ * are exempt: it has to be inside those, and charging them would only add a
+ * constant to every route out of a box while pushing the ones that end deep in
+ * a zone out around it — which is how a short edge becomes a long detour.
+ *
+ * What this buys is a tie-break. Reaching a zone two lanes down, turning in the
+ * empty lane gutter and turning inside an unrelated zone are the same length
+ * and the same number of corners, so with nothing to separate them the choice
+ * fell to whichever the heap happened to pop first — and a budget-loop arrow
+ * ran through the middle of the SLO zone on a page whose own legend says
+ * containment means ownership. At this weight the gutter wins that tie, while a
+ * genuine short-cut across the corner of a foreign zone still beats going the
+ * long way around it.
+ */
+const FOREIGN = 40;
 
 interface Box {
   x: number;
@@ -87,8 +106,10 @@ export class RouteGrid {
   private readonly near: Uint8Array;
   /** How many routed edges have already used each cell. */
   private readonly used: Uint16Array;
-  /** Passable, but costly — currently the zone headings. */
+  /** Passable, but costly — the zone headings and the bands along their borders. */
   private readonly soft: Uint8Array;
+  /** Which zone each cell falls in, as index + 1. Zero means open space. */
+  private readonly zoneAt: Int32Array;
   private readonly gScore: Float64Array;
   private readonly cameFrom: Int32Array;
 
@@ -106,6 +127,7 @@ export class RouteGrid {
     height: number,
     obstacles: Box[],
     soft: Box[] = [],
+    zones: Box[] = [],
   ) {
     this.originX = originX;
     this.originY = originY;
@@ -115,6 +137,7 @@ export class RouteGrid {
     this.near = new Uint8Array(this.cols * this.rows);
     this.used = new Uint16Array(this.cols * this.rows);
     this.soft = new Uint8Array(this.cols * this.rows);
+    this.zoneAt = new Int32Array(this.cols * this.rows);
     this.gScore = new Float64Array(this.cols * this.rows * 4);
     this.cameFrom = new Int32Array(this.cols * this.rows * 4);
 
@@ -123,6 +146,30 @@ export class RouteGrid {
     // a route squeezes through a tight gap when that is the only way.
     for (const box of obstacles) this.block(box, MARGIN + CELL * 3, this.near);
     for (const box of soft) this.block(box, 2, this.soft);
+    // Zones never overlap, so one index per cell is enough to answer both
+    // "is this inside a zone" and "which one".
+    zones.forEach((box, index) => this.stamp(box, index + 1));
+  }
+
+  private stamp(box: Box, value: number) {
+    const x0 = this.col(box.x);
+    const x1 = this.col(box.x + box.w);
+    const y0 = this.row(box.y);
+    const y1 = this.row(box.y + box.h);
+    for (let y = y0; y <= y1; y++) {
+      for (let x = x0; x <= x1; x++) {
+        if (x < 0 || y < 0 || x >= this.cols || y >= this.rows) continue;
+        this.zoneAt[y * this.cols + x] = value;
+      }
+    }
+  }
+
+  /** The zone a scene point falls in, as index + 1, or 0 for open space. */
+  private zoneOf(at: Point): number {
+    const c = this.col(at.x);
+    const r = this.row(at.y);
+    if (c < 0 || r < 0 || c >= this.cols || r >= this.rows) return 0;
+    return this.zoneAt[r * this.cols + c];
   }
 
   private block(box: Box, pad: number, into: Uint8Array) {
@@ -176,6 +223,11 @@ export class RouteGrid {
     const savedBlocked = this.blocked.slice();
     this.unblockAround(sc, sr);
     this.unblockAround(tc, tr);
+
+    // The zones this edge belongs to. Anchors sit within ZONE_PAD of their own
+    // box, so both always land inside the zone holding that box.
+    const fromZone = this.zoneOf(from);
+    const toZone = this.zoneOf(to);
 
     const startDir = dirOf(fromSide);
     // Arriving on `toSide` means travelling *into* the box, i.e. opposite.
@@ -256,6 +308,8 @@ export class RouteGrid {
         if (nd !== d) cost += TURN;
         if (this.near[ncell]) cost += CLEARANCE;
         if (this.soft[ncell]) cost += SOFT;
+        const zone = this.zoneAt[ncell];
+        if (zone !== 0 && zone !== fromZone && zone !== toZone) cost += FOREIGN;
         cost += this.used[ncell] * REUSE;
 
         const ns = idx(nc, nr, nd);
@@ -293,8 +347,92 @@ export class RouteGrid {
     }
     points.push({ x: to.x, y: to.y });
 
-    return squareUp(points);
+    // The two endpoints are exact anchors; everything between them is snapped to
+    // the grid, so the legs that reach them can sit a few pixels off axis.
+    slideLegOnto(points, points.length - 1, -1, toSide);
+    slideLegOnto(points, 0, 1, fromSide);
+
+    return squareEnds(squareUp(points), fromSide, toSide);
   }
+}
+
+/**
+ * Move the leg touching an endpoint onto that endpoint's axis.
+ *
+ * Up to CELL of quantisation separates a grid-snapped leg from the anchor it
+ * has to meet, and squaring up afterwards resolves that by adding a corner —
+ * which leaves a stub a few pixels long as the arrow's final segment. Excalidraw
+ * aims an arrowhead along the last segment, so a sideways stub aims the head
+ * into the edge of the box the arrow is arriving at and it disappears: a line
+ * that stops at a border rather than an arrow that points at it.
+ *
+ * Sliding the whole leg keeps it a single straight run, where moving only the
+ * point nearest the anchor would just push the corner one segment back.
+ *
+ * Strictly quantisation, which is why the offset is checked against CELL first.
+ * A wider gap is a corner the route means to turn, and sliding it moves the
+ * route somewhere A* never chose — the leg that should have run down an empty
+ * gutter gets dragged onto the far anchor's line and straight through whatever
+ * the gutter existed to avoid.
+ */
+function slideLegOnto(points: Point[], anchorIndex: number, step: -1 | 1, side: Side) {
+  const axis: "x" | "y" = side === "top" || side === "bottom" ? "x" : "y";
+  const target = points[anchorIndex][axis];
+
+  // Never touch the far anchor: its own side fixes it, and a path short enough
+  // for the two to meet has no leg to slide.
+  const limit = step === -1 ? 1 : points.length - 2;
+  const first = anchorIndex + step;
+  if (step === -1 ? first < limit : first > limit) return;
+  if (Math.abs(points[first][axis] - target) > CELL) return;
+
+  const leg = points[first][axis];
+  for (let i = first; step === -1 ? i >= limit : i <= limit; i += step) {
+    if (Math.abs(points[i][axis] - leg) > 0.5) break;
+    points[i] = { ...points[i], [axis]: target };
+  }
+}
+
+/**
+ * Make the segments meeting the two anchors perpendicular to their own sides.
+ *
+ * A route arrives at a `top` side travelling downward — A* enforces it, so the
+ * cells are right — but the polyline is rebuilt from turns only, and a turn
+ * landing on the final cell has no successor to compare against and is dropped.
+ * The arrow then reaches its anchor along the wrong axis, which is invisible in
+ * the geometry and very visible on the page: Excalidraw orients an arrowhead
+ * along the last segment, so the head points sideways into the border of the
+ * box and reads as a line that stops rather than an arrow that arrives.
+ *
+ * Every segment is already axis-aligned by this point, so restoring the missing
+ * turn is one corner in the orientation the side calls for.
+ */
+function squareEnds(points: Point[], fromSide: Side, toSide: Side): Point[] {
+  const out = [...points];
+  const vertical = (side: Side) => side === "top" || side === "bottom";
+
+  const last = out.length - 1;
+  if (last >= 1) {
+    const end = out[last];
+    const prev = out[last - 1];
+    if (vertical(toSide) && Math.abs(prev.x - end.x) > 0.5) {
+      out.splice(last, 0, { x: end.x, y: prev.y });
+    } else if (!vertical(toSide) && Math.abs(prev.y - end.y) > 0.5) {
+      out.splice(last, 0, { x: prev.x, y: end.y });
+    }
+  }
+
+  if (out.length >= 2) {
+    const start = out[0];
+    const next = out[1];
+    if (vertical(fromSide) && Math.abs(next.x - start.x) > 0.5) {
+      out.splice(1, 0, { x: start.x, y: next.y });
+    } else if (!vertical(fromSide) && Math.abs(next.y - start.y) > 0.5) {
+      out.splice(1, 0, { x: next.x, y: start.y });
+    }
+  }
+
+  return out;
 }
 
 /**
