@@ -94,6 +94,12 @@ Generated from the repos themselves — components from <code>git ls-files</code
 
 </div>
 
+<details>
+<summary><b>How to read this</b>&nbsp;&nbsp;<sub>what each colour means, what containment means, and when an arrow is worth spending</sub></summary>
+<br />
+<a href="https://raw.githubusercontent.com/nanohype/.github/main/profile/assets/atlas/00-legend-light.svg"><img alt="How to read this — colour, containment, and when an arrow is spent" src="https://raw.githubusercontent.com/nanohype/.github/main/profile/assets/atlas/00-legend-light.svg" width="920"></a>
+</details>
+
 <details open>
 <summary><b>1 · The factory</b>&nbsp;&nbsp;<sub>every repo is what the factory consumes, what it produces, or the factory itself</sub></summary>
 <br />
@@ -152,12 +158,6 @@ Generated from the repos themselves — components from <code>git ls-files</code
 <summary><b>10 · Lifecycle</b>&nbsp;&nbsp;<sub>two vending lines, one layer apart — both write manifests to git, and the cluster always wins on read</sub></summary>
 <br />
 <a href="https://raw.githubusercontent.com/nanohype/.github/main/profile/assets/atlas/10-lifecycle-light.svg"><img alt="Lifecycle — two vending lines, one layer apart" src="https://raw.githubusercontent.com/nanohype/.github/main/profile/assets/atlas/10-lifecycle-light.svg" width="920"></a>
-</details>
-
-<details>
-<summary><b>How to read this</b>&nbsp;&nbsp;<sub>what each colour means, what containment means, and when an arrow is worth spending</sub></summary>
-<br />
-<a href="https://raw.githubusercontent.com/nanohype/.github/main/profile/assets/atlas/00-legend-light.svg"><img alt="How to read this — colour, containment, and when an arrow is spent" src="https://raw.githubusercontent.com/nanohype/.github/main/profile/assets/atlas/00-legend-light.svg" width="920"></a>
 </details>
 
 <div align="center">
