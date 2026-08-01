@@ -107,19 +107,18 @@ const { out: files, fingerprint, wrapped } = await page.evaluate(async () => {
       ),
     });
 
-    for (const theme of ["light", "dark"] as const) {
-      const svg = await atlas.exportToSvg({
-        elements,
-        files: null,
-        exportPadding: 40,
-        appState: {
-          exportBackground: true,
-          exportWithDarkMode: theme === "dark",
-          viewBackgroundColor: theme === "dark" ? "#121212" : "#ffffff",
-        },
-      });
-      out.push({ name: `${stem}-${theme}.svg`, body: svg.outerHTML });
-    }
+    // Light only. The dark variant was Excalidraw's own inversion of a palette
+    // tuned for a light ground, which came out muddy rather than dark — and
+    // once the profile stopped referencing it, eleven unreferenced files were
+    // left behind. A real dark register would be a purpose-built palette, not
+    // an inversion, and is worth building only if something asks for it.
+    const svg = await atlas.exportToSvg({
+      elements,
+      files: null,
+      exportPadding: 40,
+      appState: { exportBackground: true, viewBackgroundColor: "#ffffff" },
+    });
+    out.push({ name: `${stem}-light.svg`, body: svg.outerHTML });
   }
 
   // A platform-independent fingerprint of the scene, written beside the SVGs.
