@@ -112,7 +112,7 @@ export const network: Perspective = {
     { from: "tgwrt", to: "attach", label: "static route", color: SEMANTIC.aws, dashed: true },
     { from: "subnets", to: "eks", label: "subnet ids", color: SEMANTIC.k8s },
     { from: "notags", to: "karpenter", label: "no discovery tag", color: SEMANTIC.security, dashed: true },
-    { from: "s3gw", to: "eks", label: "ECR layers stay in-VPC", color: SEMANTIC.aws, dashed: true },
+    { from: "s3gw", to: "eks", label: "ECR stays in-VPC", color: SEMANTIC.aws, dashed: true },
     { from: "eks", to: "cilium", color: SEMANTIC.k8s },
     { from: "eks", to: "alb", color: SEMANTIC.k8s },
   ],

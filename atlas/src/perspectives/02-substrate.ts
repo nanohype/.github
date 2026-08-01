@@ -112,11 +112,11 @@ export const substrate: Perspective = {
   // A layer stack read top to bottom already says what depends on what. Only
   // the edges that cross an account or an ownership boundary are drawn.
   edges: [
-    { from: "org-networking", to: "network", label: "IPAM pool + TGW, via RAM", color: SEMANTIC.aws, dashed: true },
-    { from: "shared-network", to: "network", label: "RAM-shares its subnets", color: SEMANTIC.aws },
-    { from: "network", to: "cluster", label: "one output contract, either mode", color: SEMANTIC.aws },
+    { from: "org-networking", to: "network", label: "IPAM + TGW via RAM", color: SEMANTIC.aws, dashed: true },
+    { from: "shared-network", to: "network", label: "RAM-shares subnets", color: SEMANTIC.aws },
+    { from: "network", to: "cluster", label: "one output contract", color: SEMANTIC.aws },
     { from: "org-scp", to: "tenant-substrate", label: "EnforceMandatoryTags", color: SEMANTIC.security, dashed: true },
-    { from: "backup", to: "shared-backup", label: "copies to a second account", color: SEMANTIC.aws },
+    { from: "backup", to: "shared-backup", label: "copies cross-account", color: SEMANTIC.aws },
   ],
   callouts: [
     {

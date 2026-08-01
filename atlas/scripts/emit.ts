@@ -72,7 +72,7 @@ await page.waitForSelector(".excalidraw__canvas", { timeout: 30_000 });
 // rather than the fallback metrics of the first build.
 await page.waitForTimeout(2500);
 
-const { out: files, fingerprint } = await page.evaluate(async () => {
+const { out: files, fingerprint, wrapped } = await page.evaluate(async () => {
   const atlas = (
     window as unknown as {
       __atlas: {
@@ -171,7 +171,21 @@ const { out: files, fingerprint } = await page.evaluate(async () => {
     });
   }
 
-  return { out, fingerprint };
+  // Only *bound* text can be wrapped by Excalidraw — a label inside a shape or
+  // on an arrow. Free-standing text (page blurbs, callout bodies) is pre-wrapped
+  // by the renderer itself, so its newlines are authored and must not be
+  // reported. containerId is the discriminator, and it is only visible here.
+  const wrapped: string[] = [];
+  for (const [index, perspective] of atlas.perspectives.entries()) {
+    for (const e of (atlas.scenes[index] ?? []) as Array<Record<string, unknown>>) {
+      if (e.type !== "text" || !e.containerId) continue;
+      if (typeof e.text === "string" && e.text.includes("\n")) {
+        wrapped.push(`  ${perspective.id}: ${JSON.stringify(e.text)}`);
+      }
+    }
+  }
+
+  return { out, fingerprint, wrapped };
 });
 
 /**
@@ -223,6 +237,12 @@ console.log(`  fonts inlined in ${inlined}/${svgs.length} svgs`);
 
 if (errors.length > 0) {
   console.error(`\npage errors:\n  ${[...new Set(errors)].join("\n  ")}`);
+  process.exit(1);
+}
+if (wrapped.length > 0) {
+  console.error(`\n${wrapped.length} label(s) too long for their shape and wrapped:`);
+  for (const w of wrapped) console.error(w);
+  console.error("\nShorten them, or widen the node. A wrapped label is a layout the model did not choose.");
   process.exit(1);
 }
 if (inlined < svgs.length) {

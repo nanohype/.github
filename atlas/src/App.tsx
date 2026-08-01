@@ -62,6 +62,14 @@ export default function App() {
 
   useEffect(() => {
     show(active);
+    // Once more on the next frame. On first mount Excalidraw's canvas has no
+    // dimensions yet, so `scrollToContent` computes a viewport fit against a
+    // zero-sized box and the scene lands off-screen — the app opens on an
+    // empty canvas and only appears once a tab is clicked. Every headless
+    // screenshot missed this because the capture script always clicked a tab
+    // before shooting.
+    const raf = requestAnimationFrame(() => show(active));
+    return () => cancelAnimationFrame(raf);
   }, [show, active]);
 
   // Built scenes, reachable from the screenshot/probe harness. Bare module

@@ -8,13 +8,26 @@
  */
 import type { Node, Perspective, Zone } from "./model.ts";
 
-export const NODE_W = 236;
-export const NODE_H = 88;
-export const NODE_GAP = 22;
+/**
+ * One spacing scale, in multiples of 4, and the gaps encode grouping.
+ *
+ * Proximity is read as relatedness before any label is: nodes inside a zone sit
+ * closer to each other than zones do to each other, and zones sit closer than
+ * lanes. Picking each gap independently is what makes a diagram feel arbitrary
+ * even when every individual value looks fine.
+ *
+ * These are also the corridors the router threads. NODE_GAP is the tightest
+ * space an edge has to pass through, so it is set well above the point where a
+ * route stops fitting rather than at it.
+ */
+export const NODE_W = 252;
+export const NODE_H = 96;
+export const NODE_GAP = 32;
 
-export const ZONE_PAD = 26;
-export const ZONE_HEADER = 62;
-export const ZONE_GAP = 72;
+export const ZONE_PAD = 32;
+/** Room for a zone's title and note, plus clear air beneath them. */
+export const ZONE_HEADER = 80;
+export const ZONE_GAP = 96;
 
 /**
  * Lanes are spaced for the arrows, not for the boxes. Most edges in this atlas
@@ -22,11 +35,11 @@ export const ZONE_GAP = 72;
  * separate before it reaches the next row of boxes — at the old 68px they
  * arrived still bunched, which reads as one thick arrow rather than six.
  */
-export const LANE_GAP = 132;
+export const LANE_GAP = 168;
 
 /** Horizontal gap between the last zone in a lane and that lane's callout. */
-export const CALLOUT_GAP = 56;
-export const CALLOUT_W = 300;
+export const CALLOUT_GAP = 72;
+export const CALLOUT_W = 312;
 
 export interface Box {
   x: number;
@@ -55,6 +68,23 @@ export interface Layout {
   gutters: { horizontal: number[]; vertical: number[] };
   /** One box per lane, so a callout can be placed beside its lane. */
   laneBounds: Box[];
+  /**
+   * The area each zone's title and note occupy. They are free-standing text, so
+   * nothing else knows they are there — without publishing them, a route is
+   * free to run straight through a heading.
+   */
+  titleBoxes: Box[];
+  /**
+   * Thin bands lying along each zone's dashed border.
+   *
+   * Charged as soft cost, not blocked. Crossing one perpendicular touches a
+   * handful of cells and stays cheap — which edges must be able to do, since a
+   * zone boundary is exactly what most of them cross. Running *along* one
+   * touches hundreds and becomes prohibitive, which is the case that matters: a
+   * line tracking a dashed border a few pixels away is unreadable as a separate
+   * thing, and that is what makes a diagram look wired rather than drawn.
+   */
+  zoneBands: Box[];
   /** Bounds of everything placed, before the title block is added. */
   bounds: Box;
 }
@@ -103,6 +133,8 @@ export function layout(perspective: Perspective): Layout {
   const zones: PlacedZone[] = [];
   const nodes: PlacedNode[] = [];
   const laneBounds: Box[] = [];
+  const titleBoxes: Box[] = [];
+  const zoneBands: Box[] = [];
 
   let y = 0;
 
@@ -122,6 +154,26 @@ export function layout(perspective: Perspective): Layout {
         ZONE_PAD;
 
       zones.push({ zone, x, y, w, h });
+
+      // Bands hugging the zone outline, half inside and half outside.
+      const BAND = 16;
+      zoneBands.push(
+        { x: x - BAND / 2, y: y - BAND / 2, w, h: BAND },
+        { x: x - BAND / 2, y: y + h - BAND / 2, w, h: BAND },
+        { x: x - BAND / 2, y: y - BAND / 2, w: BAND, h },
+        { x: x + w - BAND / 2, y: y - BAND / 2, w: BAND, h },
+      );
+
+      // Width is estimated from the longer of title and note; over-estimating
+      // costs a little routing freedom, under-estimating puts a line through a
+      // word, so it rounds up.
+      const chars = Math.max(zone.title.length, (zone.note ?? "").length * 0.7);
+      titleBoxes.push({
+        x: x + 14,
+        y: y + 8,
+        w: Math.min(w - 20, chars * 10 + 24),
+        h: zone.note ? 58 : 36,
+      });
 
       rows.forEach((row, rowIndex) => {
         const rowY = y + ZONE_HEADER + rowIndex * (NODE_H + NODE_GAP);
@@ -173,6 +225,8 @@ export function layout(perspective: Perspective): Layout {
     zones,
     nodes,
     laneBounds,
+    titleBoxes,
+    zoneBands,
     gutters: { horizontal, vertical: [...new Set(vertical)] },
     bounds: { x: 0, y: 0, w: right, h: bottom },
   };

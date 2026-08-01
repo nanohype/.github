@@ -1,59 +1,86 @@
 /**
- * Design tokens.
+ * Design tokens, derived from nanohype.dev.
  *
- * Excalidraw takes literal colours rather than a fixed palette, which is the
- * main reason it can carry a designed look that tldraw's thirteen named colours
- * could not. The palette below is drawn from Open Color — the same family
- * Excalidraw's own defaults come from — so hand-edits made in the app land on
- * neighbouring swatches instead of clashing.
+ * The site's palette is the source — `docs/tokens.json` in `nanohype.dev`. Its
+ * hues are used verbatim for strokes, so a diagram and the site read as one
+ * system; fills are light tints of those same hues, because the site is a
+ * dark-ground surface and a README is not.
+ *
+ *   ground         #0c1226   the site background — reused as ink here, and as
+ *                            the page colour in the dark export
+ *   accent.primary #3b82f6
+ *   beam-cyan      #06b6d4
+ *   signal-purple  #8b5cf6
+ *   signal-amber   #f59e0b
+ *   signal-green   #10b981
+ *   muted-fg       #94a3b8
  *
  * Each semantic role gets a stroke/fill pair at a fixed contrast relationship,
- * so a reader learns the mapping once on the legend page and it holds on all
- * ten.
+ * so the mapping is learned once on the legend page and holds on all eleven.
  */
 import type { Color } from "./model.ts";
 
 export interface Swatch {
-  /** Border and text colour. */
+  /** Border and heading colour — a nanohype.dev brand hue, unmodified. */
   stroke: string;
-  /** Interior at rest. */
+  /** Interior at rest: the same hue as a light tint. */
   fill: string;
   /** Interior when the node is the point of the page. */
   accent: string;
 }
 
 /**
- * Keyed by the tldraw-era colour names the perspective data already uses, so
- * the model files did not have to change when the renderer did.
+ * Keyed by the colour names the perspective data already uses, so the model
+ * files did not have to change when the palette did.
  */
 export const SWATCH: Record<Color, Swatch> = {
-  orange: { stroke: "#e8590c", fill: "#ffe8cc", accent: "#ffa94d" },
-  blue: { stroke: "#1971c2", fill: "#d0ebff", accent: "#74c0fc" },
-  violet: { stroke: "#6741d9", fill: "#e5dbff", accent: "#b197fc" },
-  "light-blue": { stroke: "#0c8599", fill: "#c5f6fa", accent: "#66d9e8" },
-  red: { stroke: "#c92a2a", fill: "#ffe3e3", accent: "#ff8787" },
-  green: { stroke: "#2f9e44", fill: "#d3f9d8", accent: "#69db7c" },
-  grey: { stroke: "#495057", fill: "#e9ecef", accent: "#adb5bd" },
-  yellow: { stroke: "#f08c00", fill: "#fff3bf", accent: "#ffd43b" },
-  black: { stroke: "#1e1e1e", fill: "#f1f3f5", accent: "#868e96" },
+  // signal-amber — AWS substrate
+  orange: { stroke: "#f59e0b", fill: "#fef3e2", accent: "#fbc26a" },
+  // accent.primary — Kubernetes
+  blue: { stroke: "#3b82f6", fill: "#e5eefe", accent: "#93bbfb" },
+  // signal-purple — the agent platform
+  violet: { stroke: "#8b5cf6", fill: "#eee9fe", accent: "#bfa6fa" },
+  // beam-cyan — tenant workloads
+  "light-blue": { stroke: "#06b6d4", fill: "#e0f7fb", accent: "#6ad9ea" },
+  // red — identity, policy, encryption
+  red: { stroke: "#ef4444", fill: "#fdeaea", accent: "#f79999" },
+  // signal-green — telemetry
+  green: { stroke: "#10b981", fill: "#e2f7f1", accent: "#6ed7bd" },
+  // muted-foreground — git and declared state
+  grey: { stroke: "#94a3b8", fill: "#eef1f5", accent: "#c2cbd7" },
+  // Indigo for the model plane — deliberately not amber. Bedrock is AWS, the
+  // two sit side by side on several pages, and they have to stay tellable
+  // apart at a glance.
+  yellow: { stroke: "#5457d6", fill: "#e8e9fa", accent: "#a3a5ec" },
+  // ground — annotation
+  black: { stroke: "#0c1226", fill: "#eef1f7", accent: "#8e96b3" },
+
   // Retained so the Color union stays total; unused by the current pages.
-  "light-violet": { stroke: "#7048e8", fill: "#eee5ff", accent: "#b197fc" },
-  "light-green": { stroke: "#37b24d", fill: "#ebfbee", accent: "#8ce99a" },
-  "light-red": { stroke: "#e03131", fill: "#fff5f5", accent: "#ffa8a8" },
-  white: { stroke: "#868e96", fill: "#ffffff", accent: "#dee2e6" },
+  "light-violet": { stroke: "#9a9bf0", fill: "#f0f0fd", accent: "#c5c6f6" },
+  "light-green": { stroke: "#35e07a", fill: "#e6fbee", accent: "#8fefb6" },
+  "light-red": { stroke: "#f87171", fill: "#fef0f0", accent: "#fbb4b4" },
+  white: { stroke: "#94a3b8", fill: "#ffffff", accent: "#e2e8f0" },
 };
 
 export const INK = {
-  title: "#1e1e1e",
-  body: "#343a40",
-  muted: "#868e96",
-  hairline: "#ced4da",
+  /** The site's ground colour, used as ink on a light surface. */
+  title: "#0c1226",
+  body: "#334155",
+  muted: "#94a3b8",
+  hairline: "#cbd5e1",
+} as const;
+
+/** Page background per export theme. Dark is the site's own ground colour. */
+export const PAGE_BG = {
+  light: "#ffffff",
+  dark: "#0c1226",
 } as const;
 
 /**
- * Type scale. The whole reason a node is drawn as a container plus a separate
- * caption element rather than one two-line label: a label can only carry one
- * size and one colour, and a diagram with no type hierarchy reads as a wall.
+ * Type scale. A node is a container plus a separate caption rather than one
+ * two-line label, because a label carries only one size and one colour — and
+ * the size difference between a name and its qualifier is most of what makes a
+ * dense page scannable.
  */
 export const TYPE = {
   pageTitle: 36,
@@ -67,15 +94,4 @@ export const TYPE = {
   calloutBody: 13,
 } as const;
 
-/**
- * Excalidraw measures text itself; these are the ratios it lands on for the
- * bundled fonts, used only to centre free-standing captions. Anything relying
- * on exact metrics uses a container label instead.
- */
-export const CHAR_WIDTH_RATIO = 0.52;
 export const LINE_HEIGHT = 1.25;
-
-export function estimateTextWidth(text: string, fontSize: number): number {
-  const longest = text.split("\n").reduce((max, line) => Math.max(max, line.length), 0);
-  return longest * fontSize * CHAR_WIDTH_RATIO;
-}

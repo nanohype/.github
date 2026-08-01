@@ -11,10 +11,10 @@
  */
 import type { ExcalidrawElementSkeleton } from "@excalidraw/excalidraw/data/transform";
 import { FONT_FAMILY, ROUNDNESS } from "@excalidraw/excalidraw";
-import { CALLOUT_GAP, CALLOUT_W, type Layout, layout } from "./layout.ts";
-import { INK, LINE_HEIGHT, SWATCH, TYPE } from "./design.ts";
+import { type Box, CALLOUT_GAP, CALLOUT_W, type Layout, layout } from "./layout.ts";
+import { INK, LINE_HEIGHT, PAGE_BG, SWATCH, TYPE } from "./design.ts";
 import type { Perspective, Theme } from "./model.ts";
-import { routeEdges } from "./routing.ts";
+import { type Point, routeEdges } from "./routing.ts";
 
 interface Register {
   font: number;
@@ -217,35 +217,41 @@ export function renderPerspective(
   }
 
   // ---- callouts ---------------------------------------------------------
-  for (const [i, callout] of (perspective.callouts ?? []).entries()) {
+  // Geometry first, drawing second: an edge routed before the callout box is
+  // known will happily run through it, and so will a label chip. Both did.
+  const calloutBoxes: Box[] = [];
+  const calloutParts = (perspective.callouts ?? []).map((callout, i) => {
     const lane = placed.laneBounds[callout.lane];
-    if (!lane) continue;
+    if (!lane) return null;
     const swatch = SWATCH[callout.color ?? "yellow"];
     const x = lane.x + lane.w + CALLOUT_GAP;
-
     const titleText = wrap(callout.title, 30);
     const bodyText = wrap(callout.body, 34);
-
-    // Sized to its text, not to the lane. Stretching a callout to lane height
-    // left most of the box empty, which reads as a panel that failed to load
-    // rather than as a remark.
     const titleLines = titleText.split("\n").length;
     const bodyLines = bodyText.split("\n").length;
     const titleH = titleLines * (TYPE.calloutTitle * LINE_HEIGHT);
     // The body starts below however tall the title actually is. A fixed offset
     // works only while every title fits one line, and silently overprints the
-    // first line of the body the moment one wraps.
+    // body the moment one wraps.
     const bodyY = 18 + titleH + 14;
     const height = bodyY + bodyLines * (TYPE.calloutBody * LINE_HEIGHT) + 18;
+    const box = { x, y: lane.y, w: CALLOUT_W, h: height };
+    calloutBoxes.push(box);
+    return { i, callout, swatch, box, titleText, bodyText, bodyY };
+  });
+
+  for (const part of calloutParts) {
+    if (!part) continue;
+    const { i, swatch, box, titleText, bodyText, bodyY } = part;
 
     out.push({
       type: "rectangle",
       id: `${perspective.id}-c-${i}`,
       seed: seedFor(`c${perspective.id}${i}`),
-      x,
-      y: lane.y,
-      width: CALLOUT_W,
-      height,
+      x: box.x,
+      y: box.y,
+      width: box.w,
+      height: box.h,
       strokeColor: swatch.stroke,
       backgroundColor: swatch.fill,
       fillStyle: "solid",
@@ -253,16 +259,15 @@ export function renderPerspective(
       strokeStyle: "solid",
       roughness: reg.roughness,
       roundness: { type: ROUNDNESS.ADAPTIVE_RADIUS },
-      opacity: 90,
     });
 
     out.push({
       type: "text",
       id: `${perspective.id}-ct-${i}`,
-      x: x + 18,
-      y: lane.y + 18,
-      text: titleText,
       seed: seedFor(`ct${perspective.id}${i}`),
+      x: box.x + 18,
+      y: box.y + 18,
+      text: titleText,
       fontSize: TYPE.calloutTitle,
       fontFamily: reg.font,
       strokeColor: swatch.stroke,
@@ -271,10 +276,10 @@ export function renderPerspective(
     out.push({
       type: "text",
       id: `${perspective.id}-cb-${i}`,
-      x: x + 18,
-      y: lane.y + bodyY,
-      text: bodyText,
       seed: seedFor(`cb${perspective.id}${i}`),
+      x: box.x + 18,
+      y: box.y + bodyY,
+      text: bodyText,
       fontSize: TYPE.calloutBody,
       fontFamily: reg.font,
       strokeColor: INK.body,
@@ -282,7 +287,25 @@ export function renderPerspective(
   }
 
   // ---- edges ------------------------------------------------------------
-  for (const routed of routeEdges(perspective.edges, placed.nodes, placed.gutters)) {
+  // Nodes and callouts block; zones do not — an arrow must be able to enter a
+  // boundary, that is most of what the edges on these pages are for.
+  // Nodes and zone headings block; zone *bodies* do not — an arrow has to be
+  // able to enter a boundary, which is most of what these edges are for.
+  const obstacles: Box[] = [
+    ...placed.nodes.map(({ x, y, w, h }) => ({ x, y, w, h })),
+    ...calloutBoxes,
+  ];
+
+  const labels: Array<{ edge: (typeof perspective.edges)[number]; path: Point[]; color: string }> = [];
+
+  for (const routed of routeEdges(
+    perspective.edges,
+    placed.nodes,
+    placed.gutters,
+    obstacles,
+    placed.bounds,
+    [...placed.titleBoxes, ...placed.zoneBands],
+  )) {
     const { edge, path, from, to } = routed;
     const origin = path[0];
     const swatch = SWATCH[edge.color ?? "black"];
@@ -315,31 +338,169 @@ export function renderPerspective(
       endBinding: fixedBinding(toShape, to.x, to.y),
       strokeColor: swatch.stroke,
       backgroundColor: "transparent",
-      strokeWidth: edge.dashed ? 1 : 2,
+      // Excalidraw sizes an arrowhead from the stroke width, so a thinner line
+      // is also a tighter point. At 2 the heads read as blobs at export scale.
+      strokeWidth: 1,
       strokeStyle: edge.dashed ? "dashed" : "solid",
       roughness: reg.roughness,
       opacity: edge.dashed ? 65 : 100,
       // Arrowheads carry the same distinction the stroke does: a solid arrow
       // creates or calls; a hollow dot only refers.
       startArrowhead: null,
-      endArrowhead: edge.dashed ? "circle_outline" : "arrow",
+      // A closed triangle reads as a direction at small sizes where the open
+      // "arrow" chevron dissolves. Outline rather than filled keeps it light
+      // against the line. Dashed edges keep a hollow dot: they only reference,
+      // and the terminal shape is what carries that distinction.
+      endArrowhead: edge.dashed ? "circle_outline" : "triangle_outline",
       start: { id: fromShape },
       end: { id: toShape },
-      ...(edge.label
-        ? {
-            label: {
-              text: edge.label,
-              seed: seedFor(`el${perspective.id}${edge.from}${edge.to}`),
-              fontSize: TYPE.edgeLabel,
-              fontFamily: reg.font,
-              strokeColor: swatch.stroke,
-            },
-          }
-        : {}),
     } as unknown as ExcalidrawElementSkeleton);
+
+    // The label is deliberately NOT bound to the arrow.
+    //
+    // A bound label gets a mask that punches it out of its own arrow — but only
+    // its own. Any other edge crossing that spot still runs straight through the
+    // text, which is most of the illegibility on a dense page. Collecting the
+    // labels here and drawing them after every arrow gives each one an opaque
+    // chip that occludes whatever passes beneath, whoever drew it.
+    if (edge.label) {
+      labels.push({ edge, path, color: swatch.stroke });
+    }
+  }
+
+  // Chips are added to the obstacle set as they are placed, so each one also
+  // avoids the ones already down. Without this two labels whose routes pass the
+  // same gap land on the same spot and neither is readable — which is exactly
+  // what happened to "vocabulary" and "the bar" on the factory page.
+  const taken: Box[] = [];
+
+  for (const { edge, path, color } of labels) {
+    const text = edge.label ?? "";
+    // Excalidraw re-measures the string and discards any width passed in, so
+    // the chip is sized from the same estimate the caption path uses and the
+    // text is centred on the chip rather than positioned from its left edge.
+    const w = text.length * TYPE.edgeLabel * 0.58 + 14;
+    const h = TYPE.edgeLabel * LINE_HEIGHT + 8;
+    const at = labelAnchor(path, { w, h }, [...obstacles, ...placed.titleBoxes, ...taken]);
+    taken.push({ x: at.x - w / 2, y: at.y - h / 2, w, h });
+
+    out.push({
+      type: "rectangle",
+      id: `${perspective.id}-lc-${edge.from}-${edge.to}`,
+      seed: seedFor(`lc${perspective.id}${edge.from}${edge.to}`),
+      x: at.x - w / 2,
+      y: at.y - h / 2,
+      width: w,
+      height: h,
+      strokeColor: "transparent",
+      backgroundColor: PAGE_BG.light,
+      fillStyle: "solid",
+      strokeWidth: 1,
+      roughness: 0,
+      roundness: { type: ROUNDNESS.ADAPTIVE_RADIUS },
+    });
+
+    out.push({
+      type: "text",
+      id: `${perspective.id}-lt-${edge.from}-${edge.to}`,
+      seed: seedFor(`lt${perspective.id}${edge.from}${edge.to}`),
+      x: at.x,
+      y: at.y - (TYPE.edgeLabel * LINE_HEIGHT) / 2,
+      text,
+      fontSize: TYPE.edgeLabel,
+      fontFamily: reg.font,
+      strokeColor: color,
+      textAlign: "center",
+    });
   }
 
   return out;
+}
+
+/**
+ * The point half-way along a polyline, by arc length.
+ *
+ * Not the middle vertex: on an L-shaped route one leg is often far longer than
+ * the other, so the middle vertex is the corner — the worst place to put a
+ * label, since two segments meet there.
+ */
+function labelAnchor(path: Point[], size: { w: number; h: number }, obstacles: Box[]): Point {
+  // Find somewhere legible for the chip, preferring the middle of the route.
+  //
+  // Sitting it on the arc-length midpoint unconditionally drops it onto
+  // whatever box the route happens to be passing, so the chip then hides a
+  // node's label instead of the arrow hiding the chip's. But searching *along*
+  // the path alone is not enough either: a chip is often wider than the gap
+  // between two boxes, so on a dense page no on-path position is clear at all.
+  //
+  // So the search is two-dimensional — each sampled point on the route is also
+  // tried at increasing perpendicular offsets. A label a little to the side of
+  // its line is still unambiguously that line's label, and it is legible.
+  const mid = midpointOf(path);
+
+  const clears = (at: Point) => {
+    const x0 = at.x - size.w / 2 - 3;
+    const x1 = at.x + size.w / 2 + 3;
+    const y0 = at.y - size.h / 2 - 3;
+    const y1 = at.y + size.h / 2 + 3;
+    return obstacles.every((o) => x1 < o.x || x0 > o.x + o.w || y1 < o.y || y0 > o.y + o.h);
+  };
+
+  let best: Point | null = null;
+  let bestScore = Number.POSITIVE_INFINITY;
+
+  for (let i = 1; i < path.length; i++) {
+    const a = path[i - 1];
+    const b = path[i];
+    const len = Math.hypot(b.x - a.x, b.y - a.y);
+    if (len < 1) continue;
+    // Unit normal to this segment; the offsets run along it.
+    const nx = -(b.y - a.y) / len;
+    const ny = (b.x - a.x) / len;
+    const steps = Math.max(1, Math.round(len / 6));
+
+    for (let k = 0; k <= steps; k++) {
+      const t = k / steps;
+      const on = { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t };
+
+      for (const off of [0, 11, -11, 20, -20, 30, -30, 42, -42, 56, -56, 70, -70]) {
+        const at = { x: on.x + nx * off, y: on.y + ny * off };
+        if (!clears(at)) continue;
+        // Distance from the route's middle, plus a penalty for stepping away
+        // from the line — a label far along the path or far off it is harder
+        // to attribute to the right edge.
+        const score = Math.hypot(at.x - mid.x, at.y - mid.y) + Math.abs(off) * 1.6;
+        if (score < bestScore) {
+          bestScore = score;
+          best = at;
+        }
+      }
+    }
+  }
+
+  // Every position is covered — rare, and the midpoint is then no worse than
+  // anywhere else.
+  return best ?? mid;
+}
+
+function midpointOf(path: Point[]): Point {
+  let total = 0;
+  for (let i = 1; i < path.length; i++) {
+    total += Math.hypot(path[i].x - path[i - 1].x, path[i].y - path[i - 1].y);
+  }
+  let walked = 0;
+  for (let i = 1; i < path.length; i++) {
+    const seg = Math.hypot(path[i].x - path[i - 1].x, path[i].y - path[i - 1].y);
+    if (walked + seg >= total / 2) {
+      const t = seg === 0 ? 0 : (total / 2 - walked) / seg;
+      return {
+        x: path[i - 1].x + (path[i].x - path[i - 1].x) * t,
+        y: path[i - 1].y + (path[i].y - path[i - 1].y) * t,
+      };
+    }
+    walked += seg;
+  }
+  return path[path.length - 1] ?? { x: 0, y: 0 };
 }
 
 /** Hard-wrap to a column budget; Excalidraw does not wrap free-standing text. */

@@ -96,8 +96,8 @@ export const org: Perspective = {
           {
             id: "kx",
             label: "kx",
-            sub: "kind mirror of the catalog",
-            color: SEMANTIC.k8s,
+            sub: "local replica of eks-gitops",
+            color: SEMANTIC.gitops,
           },
           {
             id: "tap",
@@ -175,9 +175,18 @@ export const org: Perspective = {
     { from: "landing-zone", to: "eks-fleet", label: "wrapped by", color: SEMANTIC.aws },
     { from: "eks-fleet", to: "clusters-repo", label: "reads claims", dashed: true },
     { from: "eks-gitops", to: "eap", label: "installs", color: SEMANTIC.k8s },
-    { from: "portal", to: "tenants-repo", label: "commits", color: SEMANTIC.gitops },
-    { from: "portal", to: "clusters-repo", label: "commits", color: SEMANTIC.gitops },
+    // Both leave portal from the same point so they read as one relationship
+    // that forks, rather than two facts that happen to share a source. The
+    // router's reuse penalty separates them once they are clear of the box.
+    {
+      from: "portal",
+      to: "tenants-repo",
+      label: "commits",
+      color: SEMANTIC.gitops,
+      fromAnchor: { x: 1, y: 0.5 },
+    },
+    { from: "portal", to: "clusters-repo", color: SEMANTIC.gitops, fromAnchor: { x: 1, y: 0.5 } },
     { from: "tenants-repo", to: "ci", label: "ApplicationSet", dashed: true },
-    { from: "eks-gitops", to: "kx", label: "mirrored at a pinned ref", dashed: true },
+    { from: "eks-gitops", to: "kx", label: "replicated locally", dashed: true, color: SEMANTIC.gitops },
   ],
 };

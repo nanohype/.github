@@ -19,7 +19,8 @@
  * arrives on the side nearest its source, spread out, which is what makes a
  * dense diagram readable.
  */
-import type { PlacedNode } from "./layout.ts";
+import type { Box, PlacedNode } from "./layout.ts";
+import { RouteGrid } from "./router.ts";
 import type { Edge } from "./model.ts";
 
 export type Side = "top" | "right" | "bottom" | "left";
@@ -135,7 +136,7 @@ export function orthogonalPath(
 }
 
 /** Distance an arrow stops short of the box it points at. */
-const GAP = 7;
+const GAP = 11;
 
 function outward(side: Side): Point {
   switch (side) {
@@ -240,6 +241,9 @@ export function routeEdges(
   edges: Edge[],
   nodes: PlacedNode[],
   gutters: Gutters = { horizontal: [], vertical: [] },
+  obstacles: Box[] = [],
+  bounds?: Box,
+  soft: Box[] = [],
 ): RoutedEdge[] {
   const byId = new Map(nodes.map((n) => [n.node.id, n]));
 
@@ -287,6 +291,14 @@ export function routeEdges(
     });
   }
 
+  // One grid per page, shared across its edges: the router records which cells
+  // each finished route used, so later edges are nudged into their own lane
+  // instead of stacking on top of the first one that got there.
+  const grid = bounds
+    ? new RouteGrid(bounds.x - 200, bounds.y - 220, bounds.w + 400, bounds.h + 440, obstacles, soft)
+    : null;
+
+  const fallbacks: string[] = [];
   const routed: RoutedEdge[] = [];
   for (const entry of sided) {
     if (!entry) continue;
@@ -294,6 +306,18 @@ export function routeEdges(
     const to = entry.edge.toAnchor ?? toAnchors.get(entry.index) ?? { x: 0.5, y: 0.5 };
     const fromPoint = absolute(entry.from, from, entry.fromSide);
     const toPoint = absolute(entry.to, to, entry.toSide);
+
+    // A* around the boxes; the gutter heuristic is the fallback. That fallback
+    // ignores obstacles entirely, so a silent fall-through is exactly how a
+    // line ends up drawn across a node — worth reporting, not swallowing.
+    const routeOne = () => {
+      const found = grid?.route(fromPoint, entry.fromSide, toPoint, entry.toSide);
+      if (found) return found;
+      if (grid) {
+        fallbacks.push(`${entry.edge.from} -> ${entry.edge.to}`);
+      }
+      return orthogonalPath(fromPoint, entry.fromSide, toPoint, entry.toSide, gutters);
+    };
     routed.push({
       edge: entry.edge,
       index: entry.index,
@@ -303,8 +327,14 @@ export function routeEdges(
       toPoint,
       fromSide: entry.fromSide,
       toSide: entry.toSide,
-      path: orthogonalPath(fromPoint, entry.fromSide, toPoint, entry.toSide, gutters),
+      // A* around the boxes when a grid is available; the gutter heuristic is
+      // the fallback for when no path exists, which is better than dropping the
+      // edge entirely.
+      path: routeOne(),
     });
+  }
+  if (fallbacks.length > 0 && typeof console !== "undefined") {
+    console.warn(`[atlas] ${fallbacks.length} edge(s) found no clear route: ${fallbacks.join(", ")}`);
   }
   return routed;
 }
