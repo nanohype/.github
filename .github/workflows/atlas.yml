@@ -25,7 +25,14 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      # `defaults.run.working-directory` applies to `run:` steps only — an
+      # action's inputs are still resolved from the repo root, so both of these
+      # have to name the atlas path explicitly. Without it action-setup looks
+      # for a root package.json that does not exist here and fails before
+      # installing anything.
       - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: atlas/package.json
 
       - uses: actions/setup-node@v5
         with:
