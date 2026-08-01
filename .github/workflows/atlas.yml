@@ -54,15 +54,19 @@ jobs:
       - name: Regenerate the diagrams
         run: pnpm emit
 
-      # `git diff --exit-code` is the whole gate. Excalidraw stamps no
-      # timestamps or random seeds into an exported SVG, and the layout is
-      # deterministic by construction, so identical input really does produce
-      # identical bytes — a diff here means the model moved and the committed
-      # SVGs did not follow.
+      # Seeds and SVG mask ids are pinned in the generator, so identical input
+      # produces identical bytes and a diff here means the model moved without
+      # the committed SVGs following.
+      #
+      # On failure the reporter prints the first differing region rather than a
+      # file list. "22 files changed" reads the same whether the diagrams are
+      # genuinely stale or the renderer varies by platform, and those call for
+      # opposite responses.
       - name: Committed SVGs match the model
+        working-directory: .
         run: |
-          if ! git diff --exit-code --stat -- ../profile/assets/atlas; then
-            echo
-            echo "The committed diagrams are stale. Run 'pnpm emit' in atlas/ and commit the result."
+          node atlas/scripts/diff-report.ts profile/assets/atlas
+          if ! git diff --quiet -- profile/assets/atlas; then
+            echo "::error::Committed diagrams do not match a fresh render (see the first differing region above)."
             exit 1
           fi
