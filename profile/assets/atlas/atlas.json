@@ -1,0 +1,79 @@
+[
+  {
+    "index": 0,
+    "id": "legend",
+    "name": "How to read this",
+    "blurb": "Ten views of one system. Colour means the same thing on every page; position means ownership; an arrow is reserved for the relationships position cannot express.",
+    "svg": "00-legend-light.svg"
+  },
+  {
+    "index": 1,
+    "id": "org",
+    "name": "1 · The factory",
+    "blurb": "Every repo plays one of three roles: what the factory consumes, what it produces, or the factory itself. The deploy substrate sits between them.",
+    "svg": "01-org-light.svg"
+  },
+  {
+    "index": 2,
+    "id": "substrate",
+    "name": "2 · Cloud substrate",
+    "blurb": "landing-zone, by layer. Organization components run once in the management account; everything below them is per-environment.",
+    "svg": "02-substrate-light.svg"
+  },
+  {
+    "index": 3,
+    "id": "network",
+    "name": "3 · Network",
+    "blurb": "One component, two modes. In create mode it owns a VPC; in adopt mode it builds nothing and re-exports someone else's through the same outputs.",
+    "svg": "03-network-light.svg"
+  },
+  {
+    "index": 4,
+    "id": "addons",
+    "name": "4 · Cluster addons",
+    "blurb": "One ApplicationSet per group, ordered by sync wave. A cluster opts in with a label; the generators do the rest.",
+    "svg": "04-addons-light.svg"
+  },
+  {
+    "index": 5,
+    "id": "control-plane",
+    "name": "5 · Control plane",
+    "blurb": "One binary, nine reconcilers, one leader-election lease. Each zone below is a reconciler; what sits inside it is what that reconciler creates and keeps true.",
+    "svg": "05-control-plane-light.svg"
+  },
+  {
+    "index": 6,
+    "id": "request-path",
+    "name": "6 · Request path",
+    "blurb": "One invocation, app to model and back. The app holds no AWS credential and signs nothing — the gateway does, as the tenant.",
+    "svg": "06-request-path-light.svg"
+  },
+  {
+    "index": 7,
+    "id": "identity",
+    "name": "7 · Identity & isolation",
+    "blurb": "Isolation is a spectrum, not a boolean. Two orthogonal dials — where the control-plane CRs live, and how hard the workload boundary is.",
+    "svg": "07-identity-light.svg"
+  },
+  {
+    "index": 8,
+    "id": "observability",
+    "name": "8 · Observability",
+    "blurb": "One neutral waist. Producers emit OTLP to a stable alias; which backends exist behind it is a property of the cluster tier.",
+    "svg": "08-observability-light.svg"
+  },
+  {
+    "index": 9,
+    "id": "governance",
+    "name": "9 · Governance loops",
+    "blurb": "Budget, SLO, and eval each close a loop that can stop a tenant. Recovery from the budget one is exclusively human.",
+    "svg": "09-governance-light.svg"
+  },
+  {
+    "index": 10,
+    "id": "lifecycle",
+    "name": "10 · Lifecycle",
+    "blurb": "Two vending lines, one layer apart. Both write manifests to git; the cluster always wins on read.",
+    "svg": "10-lifecycle-light.svg"
+  }
+]
