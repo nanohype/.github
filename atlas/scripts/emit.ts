@@ -72,18 +72,40 @@ await page.waitForSelector(".excalidraw__canvas", { timeout: 30_000 });
 // rather than the fallback metrics of the first build.
 await page.waitForTimeout(2500);
 
-const { out: files, fingerprint, wrapped } = await page.evaluate(async () => {
+const {
+  out: files,
+  fingerprint,
+  wrapped,
+  manifest,
+} = await page.evaluate(async () => {
   const atlas = (
     window as unknown as {
       __atlas: {
         scenes: unknown[][];
-        perspectives: Array<{ id: string; name: string }>;
+        perspectives: Array<{ id: string; name: string; blurb: string }>;
         exportToSvg: (opts: unknown) => Promise<SVGSVGElement>;
       };
     }
   ).__atlas;
 
   const out: Array<{ name: string; body: string }> = [];
+
+  // What each perspective is, for anything that consumes the diagrams without
+  // being able to read the model. The SVGs carry geometry and nothing else, so
+  // a reader outside this repo has the picture and no way to know what it is
+  // called or which question it answers — both of which are authored on the
+  // perspective and were previously reachable only by importing TypeScript
+  // across a repo boundary.
+  //
+  // Built in the same pass that writes the SVGs, and skipping the same empty
+  // scenes, so the manifest cannot name a file the emit did not produce.
+  const manifest: Array<{
+    index: number;
+    id: string;
+    name: string;
+    blurb: string;
+    svg: string;
+  }> = [];
 
 
   for (const [index, perspective] of atlas.perspectives.entries()) {
@@ -119,6 +141,13 @@ const { out: files, fingerprint, wrapped } = await page.evaluate(async () => {
       appState: { exportBackground: true, viewBackgroundColor: "#ffffff" },
     });
     out.push({ name: `${stem}-light.svg`, body: svg.outerHTML });
+    manifest.push({
+      index,
+      id: perspective.id,
+      name: perspective.name,
+      blurb: perspective.blurb,
+      svg: `${stem}-light.svg`,
+    });
   }
 
   // A platform-independent fingerprint of the scene, written beside the SVGs.
@@ -184,7 +213,7 @@ const { out: files, fingerprint, wrapped } = await page.evaluate(async () => {
     }
   }
 
-  return { out, fingerprint, wrapped };
+  return { out, fingerprint, wrapped, manifest };
 });
 
 /**
@@ -220,6 +249,12 @@ for (const file of files) {
 }
 
 await writeFile(`${svgDir}/atlas.fingerprint.json`, `${JSON.stringify(fingerprint, null, 2)}\n`, "utf8");
+
+// Carries no timestamp, deliberately. The staleness gate for everything in this
+// directory is a plain `git diff` after a re-emit, and a generated-at field
+// would dirty the tree on every run — turning the one gate that catches an
+// edited-but-not-re-emitted perspective into noise nobody reads.
+await writeFile(`${svgDir}/atlas.json`, `${JSON.stringify(manifest, null, 2)}\n`, "utf8");
 
 await browser.close();
 server?.kill();
