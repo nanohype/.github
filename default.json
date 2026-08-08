@@ -43,10 +43,10 @@
       "matchPackageNames": ["/^github.com/aws/aws-sdk-go-v2/"]
     },
     {
-      "description": "Group @aws-sdk/* (npm) — they release together",
+      "description": "Group @aws-sdk/* with @smithy/* (npm) — the SDK and the runtime it is generated against release together, and splitting them produces PRs that cannot pass CI alone.",
       "matchManagers": ["npm"],
       "groupName": "aws-sdk-js",
-      "matchPackageNames": ["/^@aws-sdk//"]
+      "matchPackageNames": ["/^@aws-sdk//", "/^@smithy//"]
     },
     {
       "description": "Group k8s.io/* — they must move together",
@@ -73,13 +73,15 @@
       "groupName": "pg"
     },
     {
-      "description": "Group typescript-eslint plugins",
+      "description": "Group the whole eslint stack — @eslint/* core packages, typescript-eslint, plugins and shared configs. A flat-config eslint upgrade that moves @eslint/js without its plugins fails lint on its own, so they travel together.",
       "matchManagers": ["npm"],
       "groupName": "eslint-stack",
       "matchPackageNames": [
         "/^@typescript-eslint//",
         "/^typescript-eslint$/",
-        "/^eslint-plugin-/"
+        "/^@eslint//",
+        "/^eslint-plugin-/",
+        "/^eslint-config-/"
       ]
     },
     {
