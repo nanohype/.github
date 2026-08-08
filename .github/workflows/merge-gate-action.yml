@@ -18,3 +18,35 @@ jobs:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       - name: every failure mode still fails
         run: python3 actions/merge-gate/test_gate.py
+
+  manifest:
+    name: action.yml is loadable
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      - name: it parses
+        run: python3 -c "import yaml,sys; yaml.safe_load(open('actions/merge-gate/action.yml'))"
+
+  # This job is three things at once, deliberately.
+  #
+  # It is this repository's own required check. It is also the only place the
+  # composite action is *invoked* rather than merely read — the first release
+  # shipped an action.yml that could not load at all (a ${{ }} expression in an
+  # input description, which Actions evaluates at manifest load) and CI was green,
+  # because it ran the Python and never used the action. The defect surfaced in
+  # the first consumer instead. A test that exercises the script but not the
+  # artifact consumers load is not testing the thing that ships.
+  #
+  # The failure modes are covered exhaustively by test_gate.py against the same
+  # gate.py this runs. What only a real invocation can prove is that the manifest
+  # loads and the inputs are wired, which is exactly what broke.
+  merge-gate:
+    name: merge gate
+    runs-on: ubuntu-latest
+    needs: [test, manifest]
+    if: always()
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      - uses: ./actions/merge-gate
+        with:
+          needs: ${{ toJSON(needs) }}
