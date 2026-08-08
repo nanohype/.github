@@ -3,12 +3,13 @@
   "description": [
     "Shared Renovate posture for every nanohype repo. Consume it with a one-line renovate.json: {\"extends\": [\"github>nanohype/.github\"]}.",
     "This exists because the posture was previously copy-pasted into six repos and had already drifted: five carried automerge rules and eks-gitops carried none, and one copy needed a config migration the others did not. A tooling preset belongs in one consumed place, not in per-repo copies.",
-    "ORDERING HAZARD, read before adding a repo-local packageRule: a consumer's packageRules are appended AFTER the ones here, and later rules win. The security rule at the end of this array is what keeps CVE-triggered updates out of automerge, so a local rule that sets automerge:true would land after it and defeat it. Any local rule enabling automerge must re-exclude isVulnerabilityAlert itself."
+    "ORDERING HAZARD, read before adding a repo-local packageRule: a consumer's packageRules are appended AFTER the ones here, and later rules win. The security rule at the end of this array is what keeps CVE-triggered updates out of automerge, so a local rule that sets automerge:true would land after it and defeat it. Any local rule enabling automerge must re-exclude isVulnerabilityAlert itself.",
+    "TITLE CONTRACT: 'deps' is the semantic SCOPE, never the semantic TYPE. Renovate's PR title is the first thing a conventional-commit gate reads, and a type outside that gate's allowed list makes every PR this preset opens unmergeable in that repo — with no signal anywhere else, because a repo without such a gate merges the same title happily. Keep the type inside the conventional set (chore); express what is being updated in the scope."
   ],
   "extends": [
     "config:recommended",
     ":semanticCommits",
-    ":semanticCommitTypeAll(deps)",
+    ":semanticCommitTypeAll(chore)",
     ":dependencyDashboard",
     "schedule:weekly",
     "group:allNonMajor"
