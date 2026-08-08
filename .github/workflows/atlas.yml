@@ -42,6 +42,20 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      # Supply-chain gate over atlas/pnpm-lock.yaml, matching docs and
+      # nanohype.dev. This package ships transitive-only overrides that exist
+      # purely to hold four advisories shut, and until now nothing here read the
+      # lockfile — so a resolution that quietly dropped them passed every check.
+      # Same invocation as the other two repos; atlas/pnpm-lock.yaml is the only
+      # lockfile here, so a recursive scan from the root finds exactly it.
+      # Pinned to an exact version.
+      - name: audit (osv-scanner)
+        uses: google/osv-scanner-action/osv-scanner-action@v2.3.8
+        with:
+          scan-args: |-
+            --recursive
+            ./
+
       - name: Typecheck
         run: pnpm typecheck
 
