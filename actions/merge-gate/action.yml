@@ -5,7 +5,12 @@ description: >-
 
 inputs:
   needs:
-    description: 'Always ${{ toJSON(needs) }} from the calling job.'
+    # No ${{ }} in any description on this file. Actions evaluates expressions
+    # inside input descriptions when it loads the manifest, and `needs` is not a
+    # named value in that context, so an example written there fails the whole
+    # action to load — for every consumer, with an error that points here rather
+    # than at their workflow. See the README for the call site.
+    description: 'The calling job serialised needs context. Always toJSON(needs).'
     required: true
   gate-job-id:
     description: >-
