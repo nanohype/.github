@@ -1,0 +1,20 @@
+name: merge-gate action
+
+# The gate is the only required status check on every repository in the org, so
+# a regression here unprotects all of them at once and nothing else would notice.
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: gate fails closed
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      - name: every failure mode still fails
+        run: python3 actions/merge-gate/test_gate.py

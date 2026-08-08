@@ -1,0 +1,34 @@
+name: merge gate
+description: >-
+  The single required status check for a workflow. Fails unless every job in the
+  workflow is watched by the calling job and every one of them succeeded.
+
+inputs:
+  needs:
+    description: 'Always ${{ toJSON(needs) }} from the calling job.'
+    required: true
+  gate-job-id:
+    description: >-
+      The calling job's own id, so the gate can exclude itself when checking that
+      every job in the workflow is watched. Defaults to the convention.
+    required: false
+    default: merge-gate
+  token:
+    description: >-
+      Used only to read the calling workflow file back, to check that no job in it
+      is outside the gate. Needs no more than the default read scope.
+    required: false
+    default: ${{ github.token }}
+
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      env:
+        NEEDS: ${{ inputs.needs }}
+        GATE_JOB_ID: ${{ inputs['gate-job-id'] }}
+        WORKFLOW_REF: ${{ github.workflow_ref }}
+        REPO: ${{ github.repository }}
+        SHA: ${{ github.sha }}
+        TOKEN: ${{ inputs.token }}
+      run: python3 "$GITHUB_ACTION_PATH/gate.py"
