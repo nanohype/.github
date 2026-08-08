@@ -1,0 +1,134 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": [
+    "Shared Renovate posture for every nanohype repo. Consume it with a one-line renovate.json: {\"extends\": [\"github>nanohype/.github\"]}.",
+    "This exists because the posture was previously copy-pasted into six repos and had already drifted: five carried automerge rules and eks-gitops carried none, and one copy needed a config migration the others did not. A tooling preset belongs in one consumed place, not in per-repo copies.",
+    "ORDERING HAZARD, read before adding a repo-local packageRule: a consumer's packageRules are appended AFTER the ones here, and later rules win. The security rule at the end of this array is what keeps CVE-triggered updates out of automerge, so a local rule that sets automerge:true would land after it and defeat it. Any local rule enabling automerge must re-exclude isVulnerabilityAlert itself."
+  ],
+  "extends": [
+    "config:recommended",
+    ":semanticCommits",
+    ":semanticCommitTypeAll(deps)",
+    ":dependencyDashboard",
+    "schedule:weekly",
+    "group:allNonMajor"
+  ],
+  "timezone": "America/Los_Angeles",
+  "labels": ["deps"],
+  "prHourlyLimit": 4,
+  "prConcurrentLimit": 8,
+  "rebaseWhen": "behind-base-branch",
+  "semanticCommitScope": "deps",
+  "lockFileMaintenance": {
+    "enabled": true,
+    "schedule": ["before 6am on monday"]
+  },
+  "packageRules": [
+    {
+      "description": "Patch + minor open a PR and wait for a human. automergeType is 'pr' rather than 'branch' for whenever automerge is switched on: 'branch' commits straight to the base branch without ever opening a PR, which this org does not do.",
+      "matchUpdateTypes": ["patch", "minor"],
+      "automerge": false,
+      "automergeType": "pr"
+    },
+    {
+      "description": "Major upgrades always need review",
+      "matchUpdateTypes": ["major"],
+      "automerge": false,
+      "labels": ["deps", "major"]
+    },
+    {
+      "description": "Group AWS SDK v2 (go) — they release together",
+      "matchManagers": ["gomod"],
+      "groupName": "aws-sdk-go-v2",
+      "matchPackageNames": ["/^github.com/aws/aws-sdk-go-v2/"]
+    },
+    {
+      "description": "Group @aws-sdk/* (npm) — they release together",
+      "matchManagers": ["npm"],
+      "groupName": "aws-sdk-js",
+      "matchPackageNames": ["/^@aws-sdk//"]
+    },
+    {
+      "description": "Group k8s.io/* — they must move together",
+      "matchManagers": ["gomod"],
+      "groupName": "k8s-io",
+      "matchPackageNames": ["/^k8s.io//"]
+    },
+    {
+      "description": "Group sigs.k8s.io/* — controller-runtime + tooling",
+      "matchManagers": ["gomod"],
+      "groupName": "sigs-k8s",
+      "matchPackageNames": ["/^sigs.k8s.io//"]
+    },
+    {
+      "description": "Group @opentelemetry/* — the SDK, exporters and instrumentations move together",
+      "matchManagers": ["npm"],
+      "groupName": "opentelemetry",
+      "matchPackageNames": ["/^@opentelemetry//"]
+    },
+    {
+      "description": "Group the Postgres client with its types",
+      "matchManagers": ["npm"],
+      "matchPackageNames": ["pg", "@types/pg"],
+      "groupName": "pg"
+    },
+    {
+      "description": "Group typescript-eslint plugins",
+      "matchManagers": ["npm"],
+      "groupName": "eslint-stack",
+      "matchPackageNames": [
+        "/^@typescript-eslint//",
+        "/^typescript-eslint$/",
+        "/^eslint-plugin-/"
+      ]
+    },
+    {
+      "description": "Group vitest core + coverage",
+      "matchManagers": ["npm"],
+      "groupName": "vitest",
+      "matchPackageNames": ["/^vitest$/", "/^@vitest//"]
+    },
+    {
+      "description": "GitHub Actions — group minor + patch into one PR",
+      "matchManagers": ["github-actions"],
+      "groupName": "github-actions",
+      "schedule": ["before 6am on monday"]
+    },
+    {
+      "description": "Pin GitHub Actions to commit SHAs (supply-chain hardening)",
+      "matchManagers": ["github-actions"],
+      "pinDigests": true
+    },
+    {
+      "description": "Helm chart versions",
+      "matchManagers": ["argocd", "helm-values", "helmv3"],
+      "groupName": "helm-charts",
+      "schedule": ["before 6am on monday"]
+    },
+    {
+      "description": "Docker base images",
+      "matchManagers": ["dockerfile"],
+      "groupName": "docker-base",
+      "schedule": ["before 6am on monday"]
+    },
+    {
+      "description": "OpenTofu provider versions",
+      "matchManagers": ["terraform"],
+      "groupName": "terraform-providers",
+      "schedule": ["before 6am on monday"]
+    },
+    {
+      "description": "Security/CVE updates: ALWAYS human review. Intentionally LAST — Renovate evaluates packageRules in order with later rules winning, so this must sit after any rule that could enable automerge. The vulnerabilityAlerts block below ALSO sets automerge false, but per-package rules override top-level settings, which is why this explicit rule exists as well.",
+      "matchUpdateTypes": ["patch", "minor", "major"],
+      "isVulnerabilityAlert": true,
+      "automerge": false,
+      "labels": ["security", "deps", "needs-review"]
+    }
+  ],
+  "vulnerabilityAlerts": {
+    "labels": ["security", "deps"],
+    "automerge": false,
+    "schedule": ["at any time"]
+  },
+  "osvVulnerabilityAlerts": true
+}
