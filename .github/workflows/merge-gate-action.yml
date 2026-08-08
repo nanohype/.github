@@ -27,6 +27,26 @@ jobs:
       - name: it parses
         run: python3 -c "import yaml,sys; yaml.safe_load(open('actions/merge-gate/action.yml'))"
 
+  # default.json is consumed by every repository in the org, and until now
+  # nothing looked at it before it shipped.
+  renovate-preset:
+    name: renovate preset is valid and holds its floor
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      - name: the schema
+        run: npx --yes --package renovate renovate-config-validator --strict default.json
+      # The validator only knows the schema. It accepts `minimumReleaseAge:
+      # "3 bananas"` because the schema says "string" and stops there, and it has
+      # no opinion at all on whether the value agrees with the package managers
+      # that consume the lockfiles Renovate writes. That agreement is the actual
+      # invariant, so it gets its own check — and a self-test, because a gate
+      # nobody has watched fail is not known to be a gate.
+      - name: the floor, and proof the check can fail
+        run: |
+          python3 scripts/check-renovate-floor.py
+          python3 scripts/check-renovate-floor.py --self-test
+
   # This job is three things at once, deliberately.
   #
   # It is this repository's own required check. It is also the only place the
@@ -43,7 +63,7 @@ jobs:
   merge-gate:
     name: merge gate
     runs-on: ubuntu-latest
-    needs: [test, manifest]
+    needs: [test, manifest, renovate-preset]
     if: always()
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
