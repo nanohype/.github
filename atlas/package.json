@@ -2,7 +2,7 @@
   "name": "@nanohype/atlas",
   "private": true,
   "type": "module",
-  "packageManager": "pnpm@11.5.3",
+  "packageManager": "pnpm@11.8.0",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
