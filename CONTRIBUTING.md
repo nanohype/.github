@@ -63,6 +63,22 @@ dependency ≥1 major version back needs an adjacent written reason.
 2. **Get checks green.** Every CI job is required; none is advisory. That
    includes the security scanners — findings fail the build (see
    [SECURITY.md](SECURITY.md)).
+
+   Branch protection enforces this rather than trusting it. `main` is
+   protected on every repo: pull requests are required, force pushes and
+   deletions are refused, history stays linear, and the rules apply to
+   admins too. The single required status check is **`merge gate`** — one
+   job per workflow that depends on all the others and fails unless every
+   one of them succeeded. Repos with a separate security workflow also
+   require `merge gate (security)`.
+
+   The gate treats `skipped` as a failure, which is deliberate: GitHub
+   counts a skipped check as *passing* for branch protection, so a rollup
+   that is skipped when a dependency fails would report green exactly when
+   something broke. It also refuses to pass if any job in its workflow is
+   outside its `needs:` list — so adding a job to CI makes it blocking
+   automatically, with no branch-protection edit and nothing to forget.
+   See [`actions/merge-gate`](actions/merge-gate/README.md).
 3. **Mark ready for review.** Review focuses on correctness, fit with the
    repo's declared architecture, and the production bar (see
    [GOVERNANCE.md](GOVERNANCE.md)).
