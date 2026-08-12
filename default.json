@@ -123,6 +123,11 @@
       "matchManagers": ["terraform"],
       "groupName": "terraform-providers",
       "schedule": ["before 6am on monday"]
+    },
+    {
+      "description": "First-party packages skip the release-age floor. The floor exists so no tree here is the first consumer of a compromised publish — a hijacked package is usually caught and unpublished within hours. @shuttering is published from a repo under the same ownership as its consumers, deliberately and announced, so there is no third party to be compromised by and the floor only delays a bump by three days. This has to match the pnpm side: consuming repos carry minimumReleaseAgeExclude for the same scope, and if Renovate kept the floor while pnpm dropped it, Renovate would simply refuse to propose an upgrade the package manager was willing to install. Deliberately NOT extended to @nanohype/*, which is published to the public registry and consumed outside this org — it is held to the same bar as any other public dependency.",
+      "matchPackageNames": ["/^@shuttering//"],
+      "minimumReleaseAge": null
     }
   ],
   "customManagers": [
