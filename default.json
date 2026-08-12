@@ -125,6 +125,17 @@
       "schedule": ["before 6am on monday"]
     }
   ],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "Track versions pinned in workflow env vars. A CI job that installs a tool by asking a release API for 'latest' has no pinned version to bump, so its behaviour changes with no commit and a gate can go red on a diff it never read. Pinning fixes that and creates the opposite problem — a version nobody updates — unless something tracks it. Annotate the line and this manager treats it as a dependency: # renovate: datasource=github-releases depName=owner/repo",
+      "managerFilePatterns": ["/^\\.github/workflows/[^/]+\\.ya?ml$/"],
+      "matchStrings": [
+        "#\\s*renovate:\\s*datasource=(?<datasource>[a-z-]+?)\\s+depName=(?<depName>[^\\s]+?)(?:\\s+versioning=(?<versioning>[^\\s]+?))?\\s+[A-Z0-9_]+_VERSION\\s*:\\s*[\"']?(?<currentValue>[^\"'\\s]+)[\"']?"
+      ],
+      "versioningTemplate": "{{#if versioning}}{{{versioning}}}{{else}}semver{{/if}}"
+    }
+  ],
   "vulnerabilityAlerts": {
     "description": "The whole security posture lives here, not in packageRules — see the note on the last rule above for why a packageRule cannot express 'only vulnerability alerts'. minimumReleaseAge is null on purpose, stated rather than inherited: the top-level three-day floor must not delay a CVE fix. Renovate already defaults this block that way, and writing it down keeps a future edit to the top-level floor from silently acquiring a delay on the security path.",
     "labels": ["security", "deps", "needs-review"],
