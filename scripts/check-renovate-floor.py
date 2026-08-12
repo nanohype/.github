@@ -31,6 +31,20 @@ import sys
 # comparison below is only as honest as this number.
 PNPM_FLOOR_MINUTES = 1440
 
+# Scopes allowed to skip the floor entirely, as they appear in matchPackageNames.
+#
+# The floor exists so no tree here is the first consumer of a compromised
+# publish. That reasoning does not reach a package this org publishes itself, so
+# those are exempt — but only those, and the exemption is a pair: the consuming
+# repositories carry a matching pnpm `minimumReleaseAgeExclude`, and a Renovate
+# exemption without its pnpm half is a bump Renovate proposes and pnpm refuses.
+#
+# Adding a scope here is therefore not a config edit, it is a commitment to add
+# the pnpm side in every repo that consumes it. Nothing in this repository can
+# verify that — the pnpm settings live in the consumers — which is exactly why
+# the list is short, explicit, and checked rather than left to convention.
+FIRST_PARTY_SCOPES = {"/^@shuttering//"}
+
 # Renovate accepts duration strings such as "3 days" / "6 months" / "1 year".
 UNITS = {
     "minute": 1,
@@ -99,6 +113,45 @@ def check(cfg: dict) -> list[str]:
         )
     checked.append("vulnerabilityAlerts.minimumReleaseAge is explicitly null")
 
+    # A packageRule can override the top-level floor, and a later rule wins. So
+    # the floor checked above is only the floor for packages no rule names —
+    # asserting it alone would report a floor the config does not actually
+    # enforce.
+    exempting = 0
+    for i, rule in enumerate(cfg.get("packageRules") or []):
+        if "minimumReleaseAge" not in rule:
+            continue
+        value = rule["minimumReleaseAge"]
+        names = rule.get("matchPackageNames")
+
+        if not names:
+            raise Rejected(
+                f"packageRules[{i}] sets minimumReleaseAge with no "
+                f"matchPackageNames, so it applies to every package and silently "
+                f"replaces the top-level floor."
+            )
+        unlisted = [n for n in names if n not in FIRST_PARTY_SCOPES]
+        if value is None:
+            if unlisted:
+                raise Rejected(
+                    f"packageRules[{i}] removes the floor for {unlisted}, which is "
+                    f"not first-party. The floor is what keeps this org from being "
+                    f"the first consumer of a compromised publish, and only a "
+                    f"package this org publishes itself is outside that risk."
+                )
+        else:
+            minutes_rule = parse_duration(value)
+            if minutes_rule < PNPM_FLOOR_MINUTES:
+                raise Rejected(
+                    f"packageRules[{i}] sets minimumReleaseAge to {minutes_rule} "
+                    f"minutes for {names}, below pnpm's {PNPM_FLOOR_MINUTES}. "
+                    f"Renovate would propose what pnpm then refuses to install."
+                )
+        exempting += 1
+    checked.append(
+        f"{exempting} packageRule(s) override the floor, all for first-party scopes"
+    )
+
     return checked
 
 
@@ -122,8 +175,29 @@ def self_test(cfg: dict) -> int:
             d["vulnerabilityAlerts"].pop("minimumReleaseAge", None)
         return d
 
+    def with_rule(rule):
+        d = json.loads(json.dumps(cfg))
+        d.setdefault("packageRules", []).append(rule)
+        return d
+
     breaks = [
         ("no floor at all", without("minimumReleaseAge")),
+        (
+            "a rule removing the floor for a third-party package",
+            with_rule({"matchPackageNames": ["lodash"], "minimumReleaseAge": None}),
+        ),
+        (
+            "a rule removing the floor for a lookalike scope",
+            with_rule({"matchPackageNames": ["/^@shuttering-evil//"], "minimumReleaseAge": None}),
+        ),
+        (
+            "a rule removing the floor for everything",
+            with_rule({"minimumReleaseAge": None}),
+        ),
+        (
+            "a rule lowering the floor below pnpm's",
+            with_rule({"matchPackageNames": ["/^@shuttering//"], "minimumReleaseAge": "6 hours"}),
+        ),
         ("floor below pnpm's", with_top("6 hours")),
         ("floor exactly one minute short", with_top("1439 minutes")),
         ("unparseable duration", with_top("3 bananas")),
