@@ -50,7 +50,7 @@ jobs:
       # lockfile here, so a recursive scan from the root finds exactly it.
       # Pinned to an exact version.
       - name: audit (osv-scanner)
-        uses: google/osv-scanner-action/osv-scanner-action@v2.3.8
+        uses: google/osv-scanner-action/osv-scanner-action@8deb546fdb875b9996d27d4950be7312dac076a1 # v2.5.0
         with:
           scan-args: |-
             --recursive
