@@ -35,7 +35,7 @@ page.on("console", (msg) => {
 });
 
 await page.goto(url, { waitUntil: "networkidle" });
-await page.waitForSelector(".excalidraw__canvas", { timeout: 30_000 });
+await page.waitForSelector(".atlas-canvas svg", { timeout: 30_000 });
 
 const tabs = await page.locator(".atlas-tabs button").all();
 if (tabs.length === 0) throw new Error("no perspective tabs rendered — the app did not mount");
