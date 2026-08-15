@@ -2,10 +2,10 @@
  * The diagram model.
  *
  * A perspective is data, not drawing. Everything below describes *what relates
- * to what*; `build.ts` is the only place that knows about tldraw shapes, and
- * `layout.ts` is the only place that knows about coordinates. That split is
- * what makes a perspective reviewable — a wrong arrow is a wrong line in a data
- * file, not a wrong number in a canvas.
+ * to what*; `editorial.ts` is the only place that writes SVG, and `layout.ts`
+ * is the only place that knows about coordinates. That split is what makes a
+ * perspective reviewable — a wrong arrow is a wrong line in a data file, not a
+ * wrong number in a canvas.
  */
 
 /** The tldraw default palette. Anything outside this list fails schema validation. */
@@ -108,24 +108,3 @@ export interface Perspective {
   edges: Edge[];
   callouts?: Callout[];
 }
-
-/**
- * Two visual registers for the same model.
- *
- * `clean` is the register a CNCF reviewer expects; `sketch` is tldraw's
- * hand-drawn default, which reads as a whiteboard someone actually thought at.
- * Both are one style-prop swap, so this is a toggle rather than a fork.
- */
-export type Theme = "clean" | "sketch";
-
-export interface ThemeTokens {
-  font: "sans" | "draw";
-  nodeDash: "solid" | "draw";
-  zoneDash: "dashed" | "draw";
-  edgeDash: "solid" | "draw";
-}
-
-export const THEMES: Record<Theme, ThemeTokens> = {
-  clean: { font: "sans", nodeDash: "solid", zoneDash: "dashed", edgeDash: "solid" },
-  sketch: { font: "draw", nodeDash: "draw", zoneDash: "draw", edgeDash: "draw" },
-};

@@ -6,8 +6,7 @@
  * system; fills are light tints of those same hues, because the site is a
  * dark-ground surface and a README is not.
  *
- *   ground         #0c1226   the site background — reused as ink here, and as
- *                            the page colour in the dark export
+ *   ground         #0c1226   the site background — reused as ink on light paper
  *   accent.primary #3b82f6
  *   beam-cyan      #06b6d4
  *   signal-purple  #8b5cf6
@@ -62,36 +61,35 @@ export const SWATCH: Record<Color, Swatch> = {
   white: { stroke: "#94a3b8", fill: "#ffffff", accent: "#e2e8f0" },
 };
 
-export const INK = {
-  /** The site's ground colour, used as ink on a light surface. */
-  title: "#0c1226",
-  body: "#334155",
-  muted: "#94a3b8",
-  hairline: "#cbd5e1",
-} as const;
-
-/** Page background per export theme. Dark is the site's own ground colour. */
-export const PAGE_BG = {
-  light: "#ffffff",
-  dark: "#0c1226",
+export const SKIN = {
+  paper: "#f4f2ee",
+  paper2: "#eceae4",
+  ink: "#0c1226",
+  muted: "#4f5d75",
+  soft: "#7a8399",
+  rule: "rgba(12,18,38,0.12)",
+  accent: "#3b82f6",
+  accentTint: "rgba(59,130,246,0.08)",
+  link: "#2563eb",
+  sans: "'Geist', ui-sans-serif, system-ui, sans-serif",
+  serif: "'Instrument Serif', Georgia, serif",
+  mono: "'Geist Mono', ui-monospace, monospace",
 } as const;
 
 /**
- * Type scale. A node is a container plus a separate caption rather than one
- * two-line label, because a label carries only one size and one colour — and
- * the size difference between a name and its qualifier is most of what makes a
- * dense page scannable.
+ * Diagram-design type ramp. Every size is on the 4px grid.
+ *
+ * Names are Geist sans. Technical sublabels and arrow chips are Geist Mono.
+ * The page title and callout titles are Instrument Serif.
  */
 export const TYPE = {
-  pageTitle: 36,
-  pageBlurb: 16,
-  zoneTitle: 18,
+  pageTitle: 28,
+  pageBlurb: 12,
+  zoneTitle: 8,
   zoneNote: 12,
-  nodeLabel: 16,
-  nodeSub: 12,
-  edgeLabel: 12,
-  calloutTitle: 15,
-  calloutBody: 13,
+  nodeLabel: 12,
+  nodeSub: 8,
+  edgeLabel: 8,
+  calloutTitle: 16,
+  calloutBody: 12,
 } as const;
-
-export const LINE_HEIGHT = 1.25;

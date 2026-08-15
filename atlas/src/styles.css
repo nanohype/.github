@@ -75,21 +75,6 @@ body {
   gap: 6px;
 }
 
-.atlas-toggle {
-  background: transparent;
-  border: 1px solid #3f3f4a;
-  color: #a1a1aa;
-  padding: 6px 12px;
-  border-radius: 7px;
-  font-size: 12.5px;
-  cursor: pointer;
-  min-width: 64px;
-}
-
-.atlas-toggle:hover {
-  color: #e4e4e7;
-}
-
 .atlas-export {
   background: #2a2a33;
   border: 1px solid #3f3f4a;
@@ -109,4 +94,12 @@ body {
   position: relative;
   flex: 1;
   min-height: 0;
+  overflow: auto;
+  background: #f4f2ee;
+}
+
+.atlas-canvas svg {
+  display: block;
+  width: 100%;
+  height: auto;
 }
