@@ -6,7 +6,7 @@ settings:
 
 overrides:
   lodash-es: ^4.18.0
-  nanoid: ^5.0.9
+  nanoid: ^6.0.0
   mermaid: ^11.16.1
   dompurify: ^3.4.13
 
@@ -1229,9 +1229,9 @@ packages:
   multimath@2.0.0:
     resolution: {integrity: sha512-toRx66cAMJ+Ccz7pMIg38xSIrtnbozk0dchXezwQDMgQmbGpfxjtv68H+L00iFL8hxDaVjrmwAFSb3I6bg8Q2g==}
 
-  nanoid@5.1.16:
-    resolution: {integrity: sha512-kVrnsrJqMR8+oLJnGEmSWw9BivK5mt7H3FZatVRjrc5wGqFYuBxX1yG7+A7Gi5AefkX6t/oCkizcQgpu0cY1dQ==}
-    engines: {node: ^18 || >=20}
+  nanoid@6.0.1:
+    resolution: {integrity: sha512-3wVS3i51pE2pi1k5FFL/95BGfVS0kSsvDVuGXHOtxox/TywUmtgq+3qiTOTbs9J7KfHaXPiN171k/A6dBnaXFw==}
+    engines: {node: ^22 || ^24 || >=26}
     hasBin: true
 
   normalize-path@3.0.0:
@@ -1610,7 +1610,7 @@ snapshots:
       jotai-scope: 0.7.2(jotai@2.11.0(@types/react@19.2.18)(react@19.2.8))(react@19.2.8)
       lodash.debounce: 4.0.8
       lodash.throttle: 4.1.1
-      nanoid: 5.1.16
+      nanoid: 6.0.1
       open-color: 1.9.1
       pako: 2.0.3
       perfect-freehand: 1.2.0
@@ -1639,7 +1639,7 @@ snapshots:
       '@excalidraw/markdown-to-text': 0.1.2
       '@mermaid-js/parser': 0.6.3
       mermaid: 11.16.1
-      nanoid: 5.1.16
+      nanoid: 6.0.1
 
   '@excalidraw/random-username@1.1.0': {}
 
@@ -2670,7 +2670,7 @@ snapshots:
       glur: 1.1.2
       object-assign: 4.1.1
 
-  nanoid@5.1.16: {}
+  nanoid@6.0.1: {}
 
   normalize-path@3.0.0: {}
 
@@ -2732,7 +2732,7 @@ snapshots:
 
   postcss@8.5.25:
     dependencies:
-      nanoid: 5.1.16
+      nanoid: 6.0.1
       picocolors: 1.1.1
       source-map-js: 1.2.1
 
