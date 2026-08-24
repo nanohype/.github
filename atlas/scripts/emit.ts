@@ -9,7 +9,8 @@
  * Usage: node scripts/emit.ts [outDir]
  */
 import { mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
-import { renderEditorialSvg, fingerprintPerspective } from "../src/editorial.ts";
+import { renderEditorialSvg } from "../src/editorial.ts";
+import { compose, fingerprintRows } from "../src/scene.ts";
 import { fontFaceCss } from "./fonts.ts";
 import { PERSPECTIVES } from "../src/perspectives/index.ts";
 
@@ -41,26 +42,31 @@ for (const [index, perspective] of PERSPECTIVES.entries()) {
     blurb: perspective.blurb,
     svg: `${stem}-light.svg`,
   });
-  fingerprint[perspective.id] = fingerprintPerspective(perspective);
+  fingerprint[perspective.id] = fingerprintRows(compose(perspective));
 }
 
 await writeFile(`${outDir}/atlas.fingerprint.json`, `${JSON.stringify(fingerprint, null, 2)}\n`, "utf8");
 await writeFile(`${outDir}/atlas.json`, `${JSON.stringify(manifest, null, 2)}\n`, "utf8");
 
-let missing = 0;
+// Two contracts, two counters. Summing them reports an SVG missing its
+// accessible name as an SVG missing its fonts, and a file failing both as two
+// files — a tally that is wrong in the one situation it exists to describe.
+let fontless = 0;
+let unnamed = 0;
 for (const entry of manifest) {
   const body = await readFile(`${outDir}/${entry.svg}`, "utf8");
   if (!body.includes("@font-face")) {
     console.error(`FAIL  ${entry.svg} references fonts it does not carry`);
-    missing += 1;
+    fontless += 1;
   }
   if (!body.includes('role="img"') || !body.includes(`${entry.id}-title`)) {
     console.error(`FAIL  ${entry.svg} is missing the accessible-name contract`);
-    missing += 1;
+    unnamed += 1;
   }
 }
 
 console.log(`wrote ${manifest.length} svg to ${outDir}/`);
-console.log(`  fonts inlined in ${manifest.length - missing}/${manifest.length} svgs`);
+console.log(`  fonts inlined in ${manifest.length - fontless}/${manifest.length} svgs`);
+console.log(`  accessible name in ${manifest.length - unnamed}/${manifest.length} svgs`);
 
-if (missing > 0) process.exit(1);
+if (fontless + unnamed > 0) process.exit(1);

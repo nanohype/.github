@@ -16,7 +16,8 @@
       "w": 884,
       "h": 464,
       "stroke": "#0c1226",
-      "text": "Colour is the layer"
+      "text": "Colour is the layer",
+      "note": "consistent across all ten pages"
     },
     {
       "type": "zone",
@@ -26,7 +27,8 @@
       "w": 316,
       "h": 464,
       "stroke": "#0c1226",
-      "text": "Everything else"
+      "text": "Everything else",
+      "note": "three conventions, and that is the whole vocabulary"
     },
     {
       "type": "zone",
@@ -36,7 +38,8 @@
       "w": 600,
       "h": 336,
       "stroke": "#0c1226",
-      "text": "Lines"
+      "text": "Lines",
+      "note": "solid carries traffic or creates; dashed only references"
     },
     {
       "type": "zone",
@@ -46,7 +49,8 @@
       "w": 316,
       "h": 464,
       "stroke": "#94a3b8",
-      "text": "Where this comes from"
+      "text": "Where this comes from",
+      "note": "generated from the repos, not drawn by hand"
     },
     {
       "type": "node",
@@ -58,7 +62,8 @@
       "stroke": "#f59e0b",
       "text": "AWS substrate",
       "sub": "landing-zone provisions it",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -70,7 +75,8 @@
       "stroke": "#3b82f6",
       "text": "Kubernetes",
       "sub": "cluster + addon catalog",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -82,7 +88,8 @@
       "stroke": "#8b5cf6",
       "text": "Agent platform",
       "sub": "CRDs and reconcilers",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -94,7 +101,8 @@
       "stroke": "#06b6d4",
       "text": "Tenant workload",
       "sub": "the tenant's own code",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -106,7 +114,8 @@
       "stroke": "#ef4444",
       "text": "Identity & policy",
       "sub": "IAM · KMS · admission",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -118,7 +127,8 @@
       "stroke": "#10b981",
       "text": "Telemetry",
       "sub": "signals and where they go",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -130,7 +140,8 @@
       "stroke": "#94a3b8",
       "text": "Git & GitOps",
       "sub": "the declared state",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -142,7 +153,8 @@
       "stroke": "#5457d6",
       "text": "Model plane",
       "sub": "Bedrock and what reaches it",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -154,7 +166,8 @@
       "stroke": "#0c1226",
       "text": "Annotation",
       "sub": "a remark, not a component",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -166,7 +179,8 @@
       "stroke": "#94a3b8",
       "text": "A dashed box is a boundary",
       "sub": "namespace · account · layer",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -178,7 +192,8 @@
       "stroke": "#94a3b8",
       "text": "Inside it means owned by it",
       "sub": "no arrow needed to say so",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -190,7 +205,8 @@
       "stroke": "#8b5cf6",
       "text": "A filled box is the point",
       "sub": "the two or three that matter",
-      "accent": true
+      "accent": true,
+      "step": null
     },
     {
       "type": "node",
@@ -202,7 +218,8 @@
       "stroke": "#8b5cf6",
       "text": "produces",
       "sub": "solid — A creates or calls B",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -214,7 +231,8 @@
       "stroke": "#8b5cf6",
       "text": "the thing produced",
       "sub": "",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -226,7 +244,8 @@
       "stroke": "#94a3b8",
       "text": "reads",
       "sub": "dashed — A refers to B",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -238,7 +257,8 @@
       "stroke": "#94a3b8",
       "text": "the thing read",
       "sub": "",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -250,7 +270,8 @@
       "stroke": "#94a3b8",
       "text": "components from git ls-files",
       "sub": "not from a doc that drifted",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -262,7 +283,8 @@
       "stroke": "#94a3b8",
       "text": "waves from the annotations",
       "sub": "argocd.argoproj.io/sync-wave",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -274,7 +296,8 @@
       "stroke": "#94a3b8",
       "text": "cadences from the operator",
       "sub": "ARCHITECTURE.md + controllers",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "edge",
@@ -291,6 +314,16 @@
       "text": "reads",
       "dashed": true,
       "stroke": "#94a3b8"
+    },
+    {
+      "type": "callout",
+      "lane": 0,
+      "x": 1368,
+      "y": 0,
+      "w": 312,
+      "h": 160,
+      "title": "Why ten views and not one",
+      "body": "No single diagram of this system is both complete and readable. Each page answers one question and drops everything irrelevant to it, which is why the same component appears on several pages wearing different detail."
     }
   ],
   "org": [
@@ -310,7 +343,8 @@
       "w": 316,
       "h": 208,
       "stroke": "#8b5cf6",
-      "text": "The factory"
+      "text": "The factory",
+      "note": "orchestrates the work"
     },
     {
       "type": "zone",
@@ -320,7 +354,8 @@
       "w": 884,
       "h": 208,
       "stroke": "#94a3b8",
-      "text": "Factory context"
+      "text": "Factory context",
+      "note": "the vocabulary the factory designs against"
     },
     {
       "type": "zone",
@@ -330,7 +365,8 @@
       "w": 1168,
       "h": 336,
       "stroke": "#f59e0b",
-      "text": "Deploy substrate"
+      "text": "Deploy substrate",
+      "note": "slow-moving cloud + cluster layers — shared by every tenant"
     },
     {
       "type": "zone",
@@ -340,7 +376,8 @@
       "w": 316,
       "h": 336,
       "stroke": "#94a3b8",
-      "text": "Beside it"
+      "text": "Beside it",
+      "note": "neither consumed nor deployed"
     },
     {
       "type": "zone",
@@ -350,7 +387,8 @@
       "w": 1168,
       "h": 208,
       "stroke": "#06b6d4",
-      "text": "Factory output"
+      "text": "Factory output",
+      "note": "standalone repos, each a Helm chart + a Platform CR"
     },
     {
       "type": "zone",
@@ -360,7 +398,8 @@
       "w": 316,
       "h": 336,
       "stroke": "#94a3b8",
-      "text": "GitOps state"
+      "text": "GitOps state",
+      "note": "private · portal-written"
     },
     {
       "type": "node",
@@ -372,7 +411,8 @@
       "stroke": "#8b5cf6",
       "text": "fab",
       "sub": "80-role roster · 4 transports",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -384,7 +424,8 @@
       "stroke": "#94a3b8",
       "text": "nanohype",
       "sub": "templates · composites · SDK",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -396,7 +437,8 @@
       "stroke": "#94a3b8",
       "text": "standards/*.json",
       "sub": "the published bar",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -408,7 +450,8 @@
       "stroke": "#94a3b8",
       "text": "docs",
       "sub": "Starlight front door",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -420,7 +463,8 @@
       "stroke": "#f59e0b",
       "text": "landing-zone",
       "sub": "37 OpenTofu components",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -432,7 +476,8 @@
       "stroke": "#3b82f6",
       "text": "eks-fleet",
       "sub": "vends clusters (Crossplane)",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -444,7 +489,8 @@
       "stroke": "#3b82f6",
       "text": "eks-gitops",
       "sub": "ArgoCD addon catalog",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -456,7 +502,8 @@
       "stroke": "#8b5cf6",
       "text": "eks-agent-platform",
       "sub": "tenant control plane",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -468,7 +515,8 @@
       "stroke": "#3b82f6",
       "text": "portal",
       "sub": "ops UI + one audit trail",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -480,7 +528,8 @@
       "stroke": "#ef4444",
       "text": "cloudgov",
       "sub": "IAM · cost · posture · drift",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -492,7 +541,8 @@
       "stroke": "#94a3b8",
       "text": "kx",
       "sub": "local replica of eks-gitops",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -504,7 +554,8 @@
       "stroke": "#94a3b8",
       "text": "homebrew-tap",
       "sub": "publishes the CLIs",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -516,7 +567,8 @@
       "stroke": "#06b6d4",
       "text": "competitive-intelligence",
       "sub": "crawl · semantic diff · alert",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -528,7 +580,8 @@
       "stroke": "#06b6d4",
       "text": "digest-pipeline",
       "sub": "aggregate · draft · gated send",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -540,7 +593,8 @@
       "stroke": "#06b6d4",
       "text": "incident-response",
       "sub": "war room · gated publish",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -552,7 +606,8 @@
       "stroke": "#06b6d4",
       "text": "slack-knowledge-bot",
       "sub": "ACL-filtered retrieval",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -564,7 +619,8 @@
       "stroke": "#94a3b8",
       "text": "tenants",
       "sub": "rendered tenant manifests",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -576,7 +632,8 @@
       "stroke": "#94a3b8",
       "text": "clusters",
       "sub": "Cluster claims",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "edge",
@@ -668,7 +725,8 @@
       "w": 1168,
       "h": 336,
       "stroke": "#ef4444",
-      "text": "Organization layer"
+      "text": "Organization layer",
+      "note": "management account · cross-account governance"
     },
     {
       "type": "zone",
@@ -678,7 +736,8 @@
       "w": 600,
       "h": 464,
       "stroke": "#f59e0b",
-      "text": "Network layer"
+      "text": "Network layer",
+      "note": "one VPC per environment — owned or adopted"
     },
     {
       "type": "zone",
@@ -688,7 +747,8 @@
       "w": 316,
       "h": 464,
       "stroke": "#3b82f6",
-      "text": "Cluster layer"
+      "text": "Cluster layer",
+      "note": "cluster-bootstrap is the GitOps boundary"
     },
     {
       "type": "zone",
@@ -698,7 +758,8 @@
       "w": 316,
       "h": 464,
       "stroke": "#8b5cf6",
-      "text": "Fleet + portal"
+      "text": "Fleet + portal",
+      "note": "hub/spoke slots"
     },
     {
       "type": "zone",
@@ -708,7 +769,8 @@
       "w": 600,
       "h": 464,
       "stroke": "#06b6d4",
-      "text": "Workload layer"
+      "text": "Workload layer",
+      "note": "a tenant's stores are a declaration, not a component"
     },
     {
       "type": "zone",
@@ -718,7 +780,8 @@
       "w": 884,
       "h": 592,
       "stroke": "#10b981",
-      "text": "Operational layer"
+      "text": "Operational layer",
+      "note": "the run-it-in-production half"
     },
     {
       "type": "node",
@@ -730,7 +793,8 @@
       "stroke": "#ef4444",
       "text": "org-identity",
       "sub": "IAM Identity Center · SSO",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -742,7 +806,8 @@
       "stroke": "#ef4444",
       "text": "org-security",
       "sub": "GuardDuty · Security Hub",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -754,7 +819,8 @@
       "stroke": "#ef4444",
       "text": "org-compliance",
       "sub": "CloudTrail · Config · KMS",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -766,7 +832,8 @@
       "stroke": "#ef4444",
       "text": "org-scp",
       "sub": "Service Control Policies",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -778,7 +845,8 @@
       "stroke": "#f59e0b",
       "text": "org-networking",
       "sub": "Transit Gateway · IPAM",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -790,7 +858,8 @@
       "stroke": "#f59e0b",
       "text": "org-cost",
       "sub": "budgets · CUR 2.0 export",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -802,7 +871,8 @@
       "stroke": "#f59e0b",
       "text": "org-backup",
       "sub": "delegated admin + policy",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -814,7 +884,8 @@
       "stroke": "#ef4444",
       "text": "governance",
       "sub": "audit buckets · EventBridge",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -826,7 +897,8 @@
       "stroke": "#f59e0b",
       "text": "network",
       "sub": "create | adopt · one contract",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -838,7 +910,8 @@
       "stroke": "#f59e0b",
       "text": "shared-network",
       "sub": "owner side of adopt",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -850,7 +923,8 @@
       "stroke": "#f59e0b",
       "text": "egress-network",
       "sub": "central egress hub",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -862,7 +936,8 @@
       "stroke": "#f59e0b",
       "text": "dns",
       "sub": "Route53 zones · ACM",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -874,7 +949,8 @@
       "stroke": "#f59e0b",
       "text": "private-dns",
       "sub": "PHZ · create | adopt",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -886,7 +962,8 @@
       "stroke": "#f59e0b",
       "text": "shared-dns",
       "sub": "Route53 profile owner",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -898,7 +975,8 @@
       "stroke": "#3b82f6",
       "text": "cluster",
       "sub": "EKS · Karpenter · access",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -910,7 +988,8 @@
       "stroke": "#3b82f6",
       "text": "cluster-bootstrap",
       "sub": "Cilium CNI + ArgoCD",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -922,7 +1001,8 @@
       "stroke": "#3b82f6",
       "text": "cluster-addons",
       "sub": "Pod Identity roles",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -934,7 +1014,8 @@
       "stroke": "#8b5cf6",
       "text": "fleet-hub",
       "sub": "vending control plane",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -946,7 +1027,8 @@
       "stroke": "#8b5cf6",
       "text": "fleet-vend",
       "sub": "cross-account vend role",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -958,7 +1040,8 @@
       "stroke": "#8b5cf6",
       "text": "portal-hub / -spoke",
       "sub": "portal's own substrate",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -970,7 +1053,8 @@
       "stroke": "#06b6d4",
       "text": "tenant-substrate",
       "sub": "from Platform.spec.datastores",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -982,7 +1066,8 @@
       "stroke": "#ef4444",
       "text": "agent-iam",
       "sub": "permissions boundary",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -994,7 +1079,8 @@
       "stroke": "#5457d6",
       "text": "model-import",
       "sub": "open-weight import path",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -1006,7 +1092,8 @@
       "stroke": "#06b6d4",
       "text": "druid",
       "sub": "Aurora · MSK · per tenant",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -1018,7 +1105,8 @@
       "stroke": "#06b6d4",
       "text": "pipeline",
       "sub": "Batch · Glue · data lake",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -1030,7 +1118,8 @@
       "stroke": "#10b981",
       "text": "observability",
       "sub": "alarms · SNS · dashboards",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -1042,7 +1131,8 @@
       "stroke": "#10b981",
       "text": "managed-monitoring",
       "sub": "AMP + Amazon Grafana",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -1054,7 +1144,8 @@
       "stroke": "#10b981",
       "text": "shared-observability",
       "sub": "fleet-wide alarm sink",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -1066,7 +1157,8 @@
       "stroke": "#f59e0b",
       "text": "backup",
       "sub": "plans · vault lock",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -1078,7 +1170,8 @@
       "stroke": "#f59e0b",
       "text": "shared-backup",
       "sub": "copy vault · 2nd account",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -1090,7 +1183,8 @@
       "stroke": "#ef4444",
       "text": "secrets",
       "sub": "CMKs + Secrets Manager",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -1102,7 +1196,8 @@
       "stroke": "#ef4444",
       "text": "break-glass",
       "sub": "emergency roles + alerts",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -1114,7 +1209,8 @@
       "stroke": "#f59e0b",
       "text": "cost",
       "sub": "budgets · anomaly detection",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -1126,7 +1222,8 @@
       "stroke": "#ef4444",
       "text": "github-oidc",
       "sub": "no long-lived keys",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -1138,7 +1235,8 @@
       "stroke": "#f59e0b",
       "text": "service-quotas",
       "sub": "utilisation alarms",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -1150,7 +1248,8 @@
       "stroke": "#8b5cf6",
       "text": "fleet-unwedge",
       "sub": "breaks a stuck vend",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -1162,7 +1261,8 @@
       "stroke": "#f59e0b",
       "text": "org-cost rollup",
       "sub": "CUR → Athena",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "edge",
@@ -1203,6 +1303,16 @@
       "text": "copies cross-account",
       "dashed": false,
       "stroke": "#f59e0b"
+    },
+    {
+      "type": "callout",
+      "lane": 2,
+      "x": 1652,
+      "y": 1136,
+      "w": 312,
+      "h": 160,
+      "title": "A tenant is a declaration",
+      "body": "Adding a tenant edits a map. Its databases, buckets, queues and caches are written on Platform.spec.datastores and provisioned by the generic tenant-substrate module — there is no per-app component to write."
     }
   ],
   "network": [
@@ -1222,7 +1332,8 @@
       "w": 884,
       "h": 208,
       "stroke": "#f59e0b",
-      "text": "org-networking"
+      "text": "org-networking",
+      "note": "management account — the address space and the backbone"
     },
     {
       "type": "zone",
@@ -1232,7 +1343,8 @@
       "w": 600,
       "h": 464,
       "stroke": "#f59e0b",
-      "text": "create mode"
+      "text": "create mode",
+      "note": "the single-account default — this component owns the VPC"
     },
     {
       "type": "zone",
@@ -1242,7 +1354,8 @@
       "w": 316,
       "h": 464,
       "stroke": "#94a3b8",
-      "text": "adopt mode"
+      "text": "adopt mode",
+      "note": "builds nothing — resolves and re-exports"
     },
     {
       "type": "zone",
@@ -1252,7 +1365,8 @@
       "w": 316,
       "h": 464,
       "stroke": "#f59e0b",
-      "text": "shared-network"
+      "text": "shared-network",
+      "note": "network-owner account — the far side of adopt"
     },
     {
       "type": "zone",
@@ -1262,7 +1376,8 @@
       "w": 884,
       "h": 208,
       "stroke": "#f59e0b",
-      "text": "egress-network"
+      "text": "egress-network",
+      "note": "one hub per transit gateway — every environment shares its NAT IPs"
     },
     {
       "type": "zone",
@@ -1272,7 +1387,8 @@
       "w": 600,
       "h": 336,
       "stroke": "#3b82f6",
-      "text": "The cluster that lands on it"
+      "text": "The cluster that lands on it",
+      "note": "wires against one output contract either way"
     },
     {
       "type": "node",
@@ -1284,7 +1400,8 @@
       "stroke": "#f59e0b",
       "text": "IPAM top pool",
       "sub": "per-env sub-pools, tag-discovered",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -1296,7 +1413,8 @@
       "stroke": "#f59e0b",
       "text": "Transit Gateway",
       "sub": "RAM-shared to workload accts",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -1308,7 +1426,8 @@
       "stroke": "#f59e0b",
       "text": "TGW route tables",
       "sub": "0.0.0.0/0 owned here only",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -1320,7 +1439,8 @@
       "stroke": "#f59e0b",
       "text": "VPC",
       "sub": "literal CIDR or IPAM-drawn",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -1332,7 +1452,8 @@
       "stroke": "#f59e0b",
       "text": "public + private subnets",
       "sub": "one per AZ · cidrsubnet(+8)",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -1344,7 +1465,8 @@
       "stroke": "#f59e0b",
       "text": "NAT gateways",
       "sub": "1 shared, or one per AZ",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -1356,7 +1478,8 @@
       "stroke": "#10b981",
       "text": "VPC flow logs",
       "sub": "staging + production",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -1368,7 +1491,8 @@
       "stroke": "#f59e0b",
       "text": "S3 gateway endpoint",
       "sub": "free · default ON",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -1380,7 +1504,8 @@
       "stroke": "#f59e0b",
       "text": "interface endpoints",
       "sub": "paid · default OFF",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -1392,7 +1517,8 @@
       "stroke": "#94a3b8",
       "text": "resolve existing VPC",
       "sub": "same-acct or RAM-shared",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -1404,7 +1530,8 @@
       "stroke": "#ef4444",
       "text": "consumer preflight",
       "sub": "fails at plan, not at apply",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -1416,7 +1543,8 @@
       "stroke": "#94a3b8",
       "text": "stamp_subnet_tags = false",
       "sub": "a participant cannot tag",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -1428,7 +1556,8 @@
       "stroke": "#f59e0b",
       "text": "shared VPC",
       "sub": "IPAM-drawn, one per env",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -1440,7 +1569,8 @@
       "stroke": "#f59e0b",
       "text": "owner-run endpoints",
       "sub": "same set as create mode",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -1452,7 +1582,8 @@
       "stroke": "#f59e0b",
       "text": "RAM share",
       "sub": "subnets → consumer accts",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -1464,7 +1595,8 @@
       "stroke": "#f59e0b",
       "text": "hub VPC",
       "sub": "dedicated CIDR",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -1476,7 +1608,8 @@
       "stroke": "#f59e0b",
       "text": "hub NAT",
       "sub": "terminates spoke egress",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -1488,7 +1621,8 @@
       "stroke": "#f59e0b",
       "text": "TGW attachment",
       "sub": "publishes attachment id",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -1500,7 +1634,8 @@
       "stroke": "#3b82f6",
       "text": "EKS control plane",
       "sub": "private endpoint",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -1512,7 +1647,8 @@
       "stroke": "#3b82f6",
       "text": "Karpenter",
       "sub": "discovers by subnet tag",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -1524,7 +1660,8 @@
       "stroke": "#3b82f6",
       "text": "Cilium CNI",
       "sub": "eBPF dataplane + policy",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -1536,7 +1673,8 @@
       "stroke": "#3b82f6",
       "text": "AWS LB Controller",
       "sub": "reads ELB role tags",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "edge",
@@ -1708,7 +1846,8 @@
       "w": 884,
       "h": 464,
       "stroke": "#3b82f6",
-      "text": "Waves 0–2 · bootstrap"
+      "text": "Waves 0–2 · bootstrap",
+      "note": "nothing else can reconcile until these are up"
     },
     {
       "type": "zone",
@@ -1718,7 +1857,8 @@
       "w": 600,
       "h": 464,
       "stroke": "#ef4444",
-      "text": "Waves 5–20 · compute + policy"
+      "text": "Waves 5–20 · compute + policy",
+      "note": "nodes, then the rules that govern them"
     },
     {
       "type": "zone",
@@ -1728,7 +1868,8 @@
       "w": 884,
       "h": 464,
       "stroke": "#10b981",
-      "text": "Waves 30–32 · observability"
+      "text": "Waves 30–32 · observability",
+      "note": "the OTLP waist and its backends"
     },
     {
       "type": "zone",
@@ -1738,7 +1879,8 @@
       "w": 316,
       "h": 208,
       "stroke": "#8b5cf6",
-      "text": "Wave 21"
+      "text": "Wave 21",
+      "note": "CRDs before the CRs"
     },
     {
       "type": "zone",
@@ -1748,7 +1890,8 @@
       "w": 884,
       "h": 464,
       "stroke": "#8b5cf6",
-      "text": "Waves 40–44 · the AI platform"
+      "text": "Waves 40–44 · the AI platform",
+      "note": "gateway before operator before tenants"
     },
     {
       "type": "zone",
@@ -1758,7 +1901,8 @@
       "w": 600,
       "h": 336,
       "stroke": "#94a3b8",
-      "text": "Waves 50–60"
+      "text": "Waves 50–60",
+      "note": "workflow engine, then the dashboards that read it"
     },
     {
       "type": "node",
@@ -1770,7 +1914,8 @@
       "stroke": "#3b82f6",
       "text": "cert-manager",
       "sub": "wave 0",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -1782,7 +1927,8 @@
       "stroke": "#ef4444",
       "text": "external-secrets",
       "sub": "wave 0",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -1794,7 +1940,8 @@
       "stroke": "#10b981",
       "text": "metrics-server",
       "sub": "wave 0",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -1806,7 +1953,8 @@
       "stroke": "#10b981",
       "text": "prometheus-operator-crds",
       "sub": "wave 0",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -1818,7 +1966,8 @@
       "stroke": "#3b82f6",
       "text": "storage-classes",
       "sub": "wave 0",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -1830,7 +1979,8 @@
       "stroke": "#3b82f6",
       "text": "priority-classes",
       "sub": "wave 0",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -1842,7 +1992,8 @@
       "stroke": "#3b82f6",
       "text": "cilium",
       "sub": "wave 1 · networking",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -1854,7 +2005,8 @@
       "stroke": "#3b82f6",
       "text": "external-dns",
       "sub": "wave 1",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -1866,7 +2018,8 @@
       "stroke": "#ef4444",
       "text": "secret-stores",
       "sub": "wave 1",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -1878,7 +2031,8 @@
       "stroke": "#3b82f6",
       "text": "karpenter",
       "sub": "wave 5",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -1890,7 +2044,8 @@
       "stroke": "#3b82f6",
       "text": "gpu-operator · NVIDIA DRA",
       "sub": "wave 6",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -1902,7 +2057,8 @@
       "stroke": "#ef4444",
       "text": "kyverno",
       "sub": "wave 10",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -1914,7 +2070,8 @@
       "stroke": "#ef4444",
       "text": "falco",
       "sub": "wave 10",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -1926,7 +2083,8 @@
       "stroke": "#ef4444",
       "text": "trivy-operator",
       "sub": "wave 10",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -1938,7 +2096,8 @@
       "stroke": "#ef4444",
       "text": "kyverno-policies",
       "sub": "wave 20",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -1950,7 +2109,8 @@
       "stroke": "#10b981",
       "text": "kube-state-metrics",
       "sub": "wave 30",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -1962,7 +2122,8 @@
       "stroke": "#10b981",
       "text": "grafana-operator",
       "sub": "wave 30",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -1974,7 +2135,8 @@
       "stroke": "#10b981",
       "text": "loki",
       "sub": "wave 30",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -1986,7 +2148,8 @@
       "stroke": "#f59e0b",
       "text": "opencost",
       "sub": "wave 30",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -1998,7 +2161,8 @@
       "stroke": "#3b82f6",
       "text": "gateway-api-crds",
       "sub": "wave 30",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -2010,7 +2174,8 @@
       "stroke": "#10b981",
       "text": "tempo",
       "sub": "wave 31",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -2022,7 +2187,8 @@
       "stroke": "#10b981",
       "text": "otel-agent",
       "sub": "wave 32 · DaemonSet",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -2034,7 +2200,8 @@
       "stroke": "#10b981",
       "text": "otel-gateway",
       "sub": "wave 32 · full tier",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -2046,7 +2213,8 @@
       "stroke": "#10b981",
       "text": "otel-gateway-floor",
       "sub": "wave 32 · floor tier",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -2058,7 +2226,8 @@
       "stroke": "#8b5cf6",
       "text": "agent-operator",
       "sub": "eks-agent-platform CRDs",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -2070,7 +2239,8 @@
       "stroke": "#8b5cf6",
       "text": "envoy-gateway",
       "sub": "wave 40",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -2082,7 +2252,8 @@
       "stroke": "#8b5cf6",
       "text": "envoy-ai-gateway-crds",
       "sub": "wave 40",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -2094,7 +2265,8 @@
       "stroke": "#8b5cf6",
       "text": "envoy-ai-gateway",
       "sub": "wave 40",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -2106,7 +2278,8 @@
       "stroke": "#3b82f6",
       "text": "keda",
       "sub": "wave 40 · operations",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -2118,7 +2291,8 @@
       "stroke": "#f59e0b",
       "text": "velero",
       "sub": "wave 40",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -2130,7 +2304,8 @@
       "stroke": "#3b82f6",
       "text": "descheduler · VPA · goldilocks",
       "sub": "wave 40–42",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -2142,7 +2317,8 @@
       "stroke": "#8b5cf6",
       "text": "agent-platform",
       "sub": "wave 44 · the Platform CRs",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -2154,7 +2330,8 @@
       "stroke": "#94a3b8",
       "text": "argo-events · rollouts",
       "sub": "wave 50",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -2166,7 +2343,8 @@
       "stroke": "#94a3b8",
       "text": "argo-workflows",
       "sub": "wave 52",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -2178,7 +2356,8 @@
       "stroke": "#10b981",
       "text": "dashboards",
       "sub": "wave 60 · GrafanaDashboard",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "edge",
@@ -2211,6 +2390,26 @@
       "text": "forwards :4317",
       "dashed": false,
       "stroke": "#10b981"
+    },
+    {
+      "type": "callout",
+      "lane": 1,
+      "x": 1368,
+      "y": 632,
+      "w": 312,
+      "h": 144,
+      "title": "Two gateways, never both",
+      "body": "otel-gateway and otel-gateway-floor answer on the same telemetry.monitoring alias, and their ApplicationSets select mutually exclusive tiers. A tenant chart is byte-identical across them."
+    },
+    {
+      "type": "callout",
+      "lane": 2,
+      "x": 1652,
+      "y": 1264,
+      "w": 312,
+      "h": 128,
+      "title": "The wave is the contract",
+      "body": "A cluster opts in with one label and the generators do the rest. Ordering lives in the sync-wave annotation, so ArgoCD enforces it rather than anyone remembering an install order."
     }
   ],
   "control-plane": [
@@ -2230,7 +2429,8 @@
       "w": 1452,
       "h": 336,
       "stroke": "#8b5cf6",
-      "text": "The CRD surface · v1alpha1"
+      "text": "The CRD surface · v1alpha1",
+      "note": "three capability groups under nanohype.dev — the whole public API"
     },
     {
       "type": "zone",
@@ -2240,7 +2440,8 @@
       "w": 600,
       "h": 592,
       "stroke": "#0c1226",
-      "text": "platform"
+      "text": "platform",
+      "note": "60s · drift-detects the suspension tag"
     },
     {
       "type": "zone",
@@ -2250,7 +2451,8 @@
       "w": 316,
       "h": 592,
       "stroke": "#0c1226",
-      "text": "runtime"
+      "text": "runtime",
+      "note": "30s when Pending"
     },
     {
       "type": "zone",
@@ -2260,7 +2462,8 @@
       "w": 316,
       "h": 592,
       "stroke": "#0c1226",
-      "text": "gateway"
+      "text": "gateway",
+      "note": "30s when Pending"
     },
     {
       "type": "zone",
@@ -2270,7 +2473,8 @@
       "w": 884,
       "h": 336,
       "stroke": "#0c1226",
-      "text": "budget · eval · slo"
+      "text": "budget · eval · slo",
+      "note": "the three loops that can stop a tenant"
     },
     {
       "type": "zone",
@@ -2280,7 +2484,8 @@
       "w": 600,
       "h": 336,
       "stroke": "#0c1226",
-      "text": "sandbox · agentsandbox · batch"
+      "text": "sandbox · agentsandbox · batch",
+      "note": "15s while Running · TTL-collected"
     },
     {
       "type": "zone",
@@ -2290,7 +2495,8 @@
       "w": 316,
       "h": 336,
       "stroke": "#0c1226",
-      "text": "target client"
+      "text": "target client",
+      "note": "resolved at the top of every workload reconcile"
     },
     {
       "type": "node",
@@ -2302,7 +2508,8 @@
       "stroke": "#8b5cf6",
       "text": "Tenant",
       "sub": "platform. · cluster-scoped",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -2314,7 +2521,8 @@
       "stroke": "#8b5cf6",
       "text": "Platform",
       "sub": "platform. · the boundary",
-      "accent": true
+      "accent": true,
+      "step": null
     },
     {
       "type": "node",
@@ -2326,7 +2534,8 @@
       "stroke": "#8b5cf6",
       "text": "ModelGateway",
       "sub": "agents.",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -2338,7 +2547,8 @@
       "stroke": "#8b5cf6",
       "text": "AgentFleet",
       "sub": "agents.",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -2350,7 +2560,8 @@
       "stroke": "#8b5cf6",
       "text": "AgentSandbox",
       "sub": "agents.",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -2362,7 +2573,8 @@
       "stroke": "#8b5cf6",
       "text": "SandboxPool",
       "sub": "agents.",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -2374,7 +2586,8 @@
       "stroke": "#8b5cf6",
       "text": "BatchJob",
       "sub": "agents.",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -2386,7 +2599,8 @@
       "stroke": "#f59e0b",
       "text": "BudgetPolicy",
       "sub": "governance.",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -2398,7 +2612,8 @@
       "stroke": "#10b981",
       "text": "EvalSuite",
       "sub": "governance.",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -2410,7 +2625,8 @@
       "stroke": "#10b981",
       "text": "SLOPolicy",
       "sub": "governance.",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -2422,7 +2638,8 @@
       "stroke": "#3b82f6",
       "text": "tenants-<platform> ns",
       "sub": "PSS restricted",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -2434,7 +2651,8 @@
       "stroke": "#3b82f6",
       "text": "ResourceQuota",
       "sub": "+ LimitRange",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -2446,7 +2664,8 @@
       "stroke": "#ef4444",
       "text": "default-deny egress",
       "sub": "+ Cilium rules",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -2458,7 +2677,8 @@
       "stroke": "#94a3b8",
       "text": "AppProject",
       "sub": "ArgoCD blast radius",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -2470,7 +2690,8 @@
       "stroke": "#ef4444",
       "text": "tenant IAM role",
       "sub": "<env>-<platform>-tenant",
-      "accent": true
+      "accent": true,
+      "step": null
     },
     {
       "type": "node",
@@ -2482,7 +2703,8 @@
       "stroke": "#ef4444",
       "text": "KMS grant",
       "sub": "context: PlatformId",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -2494,7 +2716,8 @@
       "stroke": "#ef4444",
       "text": "S3 bucket policy",
       "sub": "s3:prefix condition",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -2506,7 +2729,8 @@
       "stroke": "#5457d6",
       "text": "Bedrock model access",
       "sub": "from allowedModels",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -2518,7 +2742,8 @@
       "stroke": "#ef4444",
       "text": "ServiceAccount",
       "sub": "tenant-runtime",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -2530,7 +2755,8 @@
       "stroke": "#ef4444",
       "text": "Pod Identity assoc.",
       "sub": "no role-arn ever pasted",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -2542,7 +2768,8 @@
       "stroke": "#06b6d4",
       "text": "Deployment per agent",
       "sub": "the tenant's own image",
-      "accent": true
+      "accent": true,
+      "step": null
     },
     {
       "type": "node",
@@ -2554,7 +2781,8 @@
       "stroke": "#3b82f6",
       "text": "KEDA ScaledObject",
       "sub": "SQS depth, else CPU",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -2566,7 +2794,8 @@
       "stroke": "#8b5cf6",
       "text": "Gateway + EnvoyProxy",
       "sub": "the data-plane shape",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -2578,7 +2807,8 @@
       "stroke": "#8b5cf6",
       "text": "AIGatewayRoute",
       "sub": "one rule per route",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -2590,7 +2820,8 @@
       "stroke": "#ef4444",
       "text": "AIServiceBackend",
       "sub": "+ BackendSecurityPolicy",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -2602,7 +2833,8 @@
       "stroke": "#8b5cf6",
       "text": "status.routes[]",
       "sub": "the published contract",
-      "accent": true
+      "accent": true,
+      "step": null
     },
     {
       "type": "node",
@@ -2614,7 +2846,8 @@
       "stroke": "#f59e0b",
       "text": "status.currentSpend",
       "sub": "Athena CUR + in-flight",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -2626,7 +2859,8 @@
       "stroke": "#f59e0b",
       "text": "EventBridge BudgetBreach",
       "sub": "at ≥120%",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -2638,7 +2872,8 @@
       "stroke": "#10b981",
       "text": "Argo CronWorkflow",
       "sub": "eval-runner template",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -2650,7 +2885,8 @@
       "stroke": "#10b981",
       "text": "status.lastScore",
       "sub": "gates a Rollout",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -2662,7 +2898,8 @@
       "stroke": "#10b981",
       "text": "burn-rate rules",
       "sub": "PrometheusRule",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -2674,7 +2911,8 @@
       "stroke": "#94a3b8",
       "text": "ArgoCD sync hold",
       "sub": "single-writer on AppProject",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -2686,7 +2924,8 @@
       "stroke": "#06b6d4",
       "text": "pool worker Deployment",
       "sub": "+ metrics bridge",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -2698,7 +2937,8 @@
       "stroke": "#ef4444",
       "text": "single-use session Pod",
       "sub": "hardened · default-deny",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -2710,7 +2950,8 @@
       "stroke": "#f59e0b",
       "text": "AWS Batch submission",
       "sub": "off-cluster compute",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -2722,7 +2963,8 @@
       "stroke": "#ef4444",
       "text": "TTL garbage collection",
       "sub": "no pod outlives its session",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -2734,7 +2976,8 @@
       "stroke": "#3b82f6",
       "text": "host API",
       "sub": "isolation: namespace",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -2746,7 +2989,8 @@
       "stroke": "#ef4444",
       "text": "vcluster API",
       "sub": "isolation: vcluster",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "edge",
@@ -2779,6 +3023,26 @@
       "text": "or here",
       "dashed": true,
       "stroke": "#ef4444"
+    },
+    {
+      "type": "callout",
+      "lane": 1,
+      "x": 1496,
+      "y": 504,
+      "w": 312,
+      "h": 144,
+      "title": "Why one binary",
+      "body": "Nine reconcilers share a single leader-election lease. Splitting them is trivial if one outgrows the rest; running six deployments before that happens is just more to operate."
+    },
+    {
+      "type": "callout",
+      "lane": 2,
+      "x": 2064,
+      "y": 1264,
+      "w": 312,
+      "h": 164,
+      "title": "Fast state here, slow state in OpenTofu",
+      "body": "Per-tenant IAM, KMS grants and model access reconcile through the AWS SDK because a Platform apply must not wait on a Terragrunt run. Buckets, keys, endpoints and the event bus stay in landing-zone."
     }
   ],
   "request-path": [
@@ -2798,7 +3062,8 @@
       "w": 600,
       "h": 336,
       "stroke": "#06b6d4",
-      "text": "Tenant namespace"
+      "text": "Tenant namespace",
+      "note": "tenants-<platform> · the app's whole world"
     },
     {
       "type": "zone",
@@ -2808,7 +3073,8 @@
       "w": 600,
       "h": 464,
       "stroke": "#8b5cf6",
-      "text": "The gateway · same namespace"
+      "text": "The gateway · same namespace",
+      "note": "Envoy, under the tenant ServiceAccount"
     },
     {
       "type": "zone",
@@ -2818,7 +3084,8 @@
       "w": 600,
       "h": 336,
       "stroke": "#5457d6",
-      "text": "AWS"
+      "text": "AWS",
+      "note": "inference leaves the cluster; nothing else does"
     },
     {
       "type": "zone",
@@ -2828,7 +3095,8 @@
       "w": 600,
       "h": 336,
       "stroke": "#10b981",
-      "text": "Capture + cost"
+      "text": "Capture + cost",
+      "note": "the record the agent's account gets checked against"
     },
     {
       "type": "zone",
@@ -2838,7 +3106,8 @@
       "w": 316,
       "h": 336,
       "stroke": "#10b981",
-      "text": "Signals"
+      "text": "Signals",
+      "note": "one collector, tier-blind"
     },
     {
       "type": "node",
@@ -2850,7 +3119,8 @@
       "stroke": "#06b6d4",
       "text": "agent pod",
       "sub": "tenant image · agent loop",
-      "accent": false
+      "accent": false,
+      "step": 1
     },
     {
       "type": "node",
@@ -2862,7 +3132,8 @@
       "stroke": "#8b5cf6",
       "text": "MODEL_ROUTE_BASE_URL",
       "sub": "+ _API · from status.routes[]",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -2874,7 +3145,8 @@
       "stroke": "#06b6d4",
       "text": "in-process tools",
       "sub": "run as the tenant, not a server",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -2886,7 +3158,8 @@
       "stroke": "#10b981",
       "text": "OTLP :4317",
       "sub": "span + correlation_id",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -2898,7 +3171,8 @@
       "stroke": "#8b5cf6",
       "text": "Gateway listener",
       "sub": "/anthropic/v1/messages",
-      "accent": true
+      "accent": true,
+      "step": 2
     },
     {
       "type": "node",
@@ -2910,7 +3184,8 @@
       "stroke": "#ef4444",
       "text": "extproc body parser",
       "sub": "registered per endpoint path",
-      "accent": true
+      "accent": true,
+      "step": 3
     },
     {
       "type": "node",
@@ -2922,7 +3197,8 @@
       "stroke": "#8b5cf6",
       "text": "AIGatewayRoute rule",
       "sub": "matches x-ai-eg-model",
-      "accent": false
+      "accent": false,
+      "step": 4
     },
     {
       "type": "node",
@@ -2934,7 +3210,8 @@
       "stroke": "#8b5cf6",
       "text": "modelNameOverride",
       "sub": "route name → Bedrock id",
-      "accent": false
+      "accent": false,
+      "step": 5
     },
     {
       "type": "node",
@@ -2946,7 +3223,8 @@
       "stroke": "#ef4444",
       "text": "BackendSecurityPolicy",
       "sub": "SigV4, as the tenant role",
-      "accent": false
+      "accent": false,
+      "step": 6
     },
     {
       "type": "node",
@@ -2958,7 +3236,8 @@
       "stroke": "#ef4444",
       "text": "BackendTrafficPolicy",
       "sub": "per-route rate limit",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -2970,7 +3249,8 @@
       "stroke": "#f59e0b",
       "text": "PrivateLink endpoint",
       "sub": "bedrock-runtime",
-      "accent": false
+      "accent": false,
+      "step": 7
     },
     {
       "type": "node",
@@ -2982,7 +3262,8 @@
       "stroke": "#ef4444",
       "text": "Bedrock Guardrails",
       "sub": "input, then output policy",
-      "accent": false
+      "accent": false,
+      "step": 8
     },
     {
       "type": "node",
@@ -2994,7 +3275,8 @@
       "stroke": "#5457d6",
       "text": "Bedrock InvokeModel",
       "sub": "in-region or CRIS profile",
-      "accent": false
+      "accent": false,
+      "step": 9
     },
     {
       "type": "node",
@@ -3006,7 +3288,8 @@
       "stroke": "#10b981",
       "text": "invocation log group",
       "sub": "modelId · tokens · identity",
-      "accent": false
+      "accent": false,
+      "step": 10
     },
     {
       "type": "node",
@@ -3018,7 +3301,8 @@
       "stroke": "#ef4444",
       "text": "WORM capture",
       "sub": "Object Lock · GOVERNANCE",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -3030,7 +3314,8 @@
       "stroke": "#f59e0b",
       "text": "invocation-cost-publisher",
       "sub": "subscription filter → Lambda",
-      "accent": false
+      "accent": false,
+      "step": 11
     },
     {
       "type": "node",
@@ -3042,7 +3327,8 @@
       "stroke": "#f59e0b",
       "text": "EstimatedInvocationCost",
       "sub": "Usd · dimension: PlatformId",
-      "accent": false
+      "accent": false,
+      "step": 12
     },
     {
       "type": "node",
@@ -3054,7 +3340,8 @@
       "stroke": "#f59e0b",
       "text": "CUR → Athena",
       "sub": "resource_tags_user_platformid",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -3066,7 +3353,8 @@
       "stroke": "#10b981",
       "text": "OTel Collector",
       "sub": "telemetry.monitoring:4317",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -3078,7 +3366,8 @@
       "stroke": "#10b981",
       "text": "agents.tenant · .platform",
       "sub": "resource attrs, not self-report",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "edge",
@@ -3239,6 +3528,26 @@
       "text": "",
       "dashed": true,
       "stroke": "#10b981"
+    },
+    {
+      "type": "callout",
+      "lane": 0,
+      "x": 1368,
+      "y": 0,
+      "w": 312,
+      "h": 196,
+      "title": "Steps 2 and 3 are where this breaks",
+      "body": "extproc registers a body-parsing processor per endpoint path. A request to an unregistered prefix never has its model read out of the body, never gets x-ai-eg-model, and matches no route — so every call fails while the Gateway still reports healthy."
+    },
+    {
+      "type": "callout",
+      "lane": 1,
+      "x": 1780,
+      "y": 632,
+      "w": 312,
+      "h": 128,
+      "title": "The app signs nothing",
+      "body": "It holds no AWS credential. Envoy signs SigV4 as the tenant ServiceAccount, so the audit record and the agent's own account of what it did name the same principal."
     }
   ],
   "identity": [
@@ -3258,7 +3567,8 @@
       "w": 600,
       "h": 336,
       "stroke": "#ef4444",
-      "text": "The principal chain"
+      "text": "The principal chain",
+      "note": "no role ARN is ever pasted into a chart"
     },
     {
       "type": "zone",
@@ -3268,7 +3578,8 @@
       "w": 600,
       "h": 464,
       "stroke": "#f59e0b",
-      "text": "What that role can reach"
+      "text": "What that role can reach",
+      "note": "every Resource scoped by naming convention or exact ARN"
     },
     {
       "type": "zone",
@@ -3278,7 +3589,8 @@
       "w": 600,
       "h": 336,
       "stroke": "#ef4444",
-      "text": "Two CMKs, per cluster"
+      "text": "Two CMKs, per cluster",
+      "note": "a breach of the auditor role surfaces history, not content"
     },
     {
       "type": "zone",
@@ -3288,7 +3600,8 @@
       "w": 316,
       "h": 592,
       "stroke": "#8b5cf6",
-      "text": "Isolation tiers"
+      "text": "Isolation tiers",
+      "note": "growing up a tier is a value change, never a migration"
     },
     {
       "type": "zone",
@@ -3298,7 +3611,8 @@
       "w": 316,
       "h": 592,
       "stroke": "#ef4444",
-      "text": "Cluster-side enforcement"
+      "text": "Cluster-side enforcement",
+      "note": "the boundary the tenant cannot reach around"
     },
     {
       "type": "zone",
@@ -3308,7 +3622,8 @@
       "w": 1168,
       "h": 336,
       "stroke": "#ef4444",
-      "text": "Above the account"
+      "text": "Above the account",
+      "note": "guardrails no workload role can escape"
     },
     {
       "type": "node",
@@ -3320,7 +3635,8 @@
       "stroke": "#3b82f6",
       "text": "ServiceAccount",
       "sub": "tenant-runtime",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -3332,7 +3648,8 @@
       "stroke": "#ef4444",
       "text": "Pod Identity association",
       "sub": "operator-reconciled",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -3344,7 +3661,8 @@
       "stroke": "#ef4444",
       "text": "tenant IAM role",
       "sub": "<env>-<platform>-tenant",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -3356,7 +3674,8 @@
       "stroke": "#ef4444",
       "text": "permissions boundary",
       "sub": "agent-iam · clamps the role",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -3368,7 +3687,8 @@
       "stroke": "#ef4444",
       "text": "cmk-data grant",
       "sub": "EncryptionContext PlatformId",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -3380,7 +3700,8 @@
       "stroke": "#f59e0b",
       "text": "S3 prefix",
       "sub": "s3:prefix condition",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -3392,7 +3713,8 @@
       "stroke": "#06b6d4",
       "text": "declared datastores",
       "sub": "<env>-<platform>-<store>",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -3404,7 +3726,8 @@
       "stroke": "#ef4444",
       "text": "master secret ARN",
       "sub": "exact, read from SSM",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -3416,7 +3739,8 @@
       "stroke": "#5457d6",
       "text": "allowedModels",
       "sub": "profile + underlying FM",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -3428,7 +3752,8 @@
       "stroke": "#ef4444",
       "text": "directSecretReads",
       "sub": "namespace-prefixed only",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -3440,7 +3765,8 @@
       "stroke": "#ef4444",
       "text": "cmk-data",
       "sub": "artifacts · audit · archive",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -3452,7 +3778,8 @@
       "stroke": "#ef4444",
       "text": "cmk-logs",
       "sub": "log groups · invocation logs",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -3464,7 +3791,8 @@
       "stroke": "#ef4444",
       "text": "auditor role",
       "sub": "decrypt on cmk-logs ONLY",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -3476,7 +3804,8 @@
       "stroke": "#0c1226",
       "text": "no decrypt on cmk-data",
       "sub": "oversight ≠ data access",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -3488,7 +3817,8 @@
       "stroke": "#8b5cf6",
       "text": "shared control-plane ns",
       "sub": "default · lowest ceremony",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -3500,7 +3830,8 @@
       "stroke": "#8b5cf6",
       "text": "eap-tenant-<name>",
       "sub": "dedicated control-plane ns",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -3512,7 +3843,8 @@
       "stroke": "#8b5cf6",
       "text": "isolation: vcluster",
       "sub": "API-server isolation",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -3524,7 +3856,8 @@
       "stroke": "#8b5cf6",
       "text": "dedicated cluster",
       "sub": "regulated · sovereign",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -3536,7 +3869,8 @@
       "stroke": "#ef4444",
       "text": "PSS restricted",
       "sub": "namespace label",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -3548,7 +3882,8 @@
       "stroke": "#ef4444",
       "text": "Kyverno policies",
       "sub": "non-root · limits · images",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -3560,7 +3895,8 @@
       "stroke": "#ef4444",
       "text": "default-deny egress",
       "sub": "+ Cilium egress rules",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -3572,7 +3908,8 @@
       "stroke": "#94a3b8",
       "text": "AppProject",
       "sub": "ArgoCD blast radius",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -3584,7 +3921,8 @@
       "stroke": "#ef4444",
       "text": "Service Control Policies",
       "sub": "org-scp · OU-attached",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -3596,7 +3934,8 @@
       "stroke": "#0c1226",
       "text": "EnforceMandatoryTags",
       "sub": "PlatformId + DataClassification",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -3608,7 +3947,8 @@
       "stroke": "#ef4444",
       "text": "GuardDuty · Security Hub",
       "sub": "S3 · EKS · malware · RDS",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -3620,7 +3960,8 @@
       "stroke": "#ef4444",
       "text": "org CloudTrail",
       "sub": "one trail, all accounts",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -3632,7 +3973,8 @@
       "stroke": "#ef4444",
       "text": "break-glass roles",
       "sub": "SNS alert on assumption",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -3644,7 +3986,8 @@
       "stroke": "#ef4444",
       "text": "GitHub OIDC",
       "sub": "repo-scoped, no static keys",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -3656,7 +3999,8 @@
       "stroke": "#ef4444",
       "text": "IAM Identity Center",
       "sub": "permission sets · groups",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -3668,7 +4012,8 @@
       "stroke": "#ef4444",
       "text": "cloudgov",
       "sub": "least-privilege + drift audit",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "edge",
@@ -3840,7 +4185,8 @@
       "w": 884,
       "h": 336,
       "stroke": "#06b6d4",
-      "text": "Producers"
+      "text": "Producers",
+      "note": "everything carries agents.tenant and agents.platform"
     },
     {
       "type": "zone",
@@ -3850,7 +4196,8 @@
       "w": 600,
       "h": 336,
       "stroke": "#10b981",
-      "text": "The waist"
+      "text": "The waist",
+      "note": "telemetry.monitoring.svc:4317 — the same name in every tier"
     },
     {
       "type": "zone",
@@ -3860,7 +4207,8 @@
       "w": 600,
       "h": 336,
       "stroke": "#f59e0b",
-      "text": "Backends"
+      "text": "Backends",
+      "note": "the tier is which of these exist"
     },
     {
       "type": "zone",
@@ -3870,7 +4218,8 @@
       "w": 884,
       "h": 336,
       "stroke": "#10b981",
-      "text": "Consumers"
+      "text": "Consumers",
+      "note": "per-persona, not per-service"
     },
     {
       "type": "zone",
@@ -3880,7 +4229,8 @@
       "w": 316,
       "h": 464,
       "stroke": "#8b5cf6",
-      "text": "SLOPolicy · a control loop"
+      "text": "SLOPolicy · a control loop",
+      "note": "burn rate is not just an alert here"
     },
     {
       "type": "node",
@@ -3892,7 +4242,8 @@
       "stroke": "#06b6d4",
       "text": "AgentFleet pods",
       "sub": "attrs on the PodSpec",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -3904,7 +4255,8 @@
       "stroke": "#06b6d4",
       "text": "AgentSandbox · pool workers",
       "sub": "OTEL_RESOURCE_ATTRIBUTES",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -3916,7 +4268,8 @@
       "stroke": "#94a3b8",
       "text": "eval-runner step",
       "sub": "attrs from workflow params",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -3928,7 +4281,8 @@
       "stroke": "#8b5cf6",
       "text": "gateway Envoy",
       "sub": "attributable by label",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -3940,7 +4294,8 @@
       "stroke": "#8b5cf6",
       "text": "operator",
       "sub": "reconcile metrics + SLO",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -3952,7 +4307,8 @@
       "stroke": "#10b981",
       "text": "kube-state-metrics",
       "sub": "CR state as metrics",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -3964,7 +4320,8 @@
       "stroke": "#10b981",
       "text": "otel-agent",
       "sub": "DaemonSet · enriches k8s.*",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -3976,7 +4333,8 @@
       "stroke": "#10b981",
       "text": "otel-gateway",
       "sub": "full tier",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -3988,7 +4346,8 @@
       "stroke": "#10b981",
       "text": "otel-gateway-floor",
       "sub": "floor tier · same names",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -4000,7 +4359,8 @@
       "stroke": "#ef4444",
       "text": "processors",
       "sub": "limiter · resource · PII · batch",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -4012,7 +4372,8 @@
       "stroke": "#10b981",
       "text": "Amazon Managed Prometheus",
       "sub": "full tier",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -4024,7 +4385,8 @@
       "stroke": "#10b981",
       "text": "Loki",
       "sub": "full tier",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -4036,7 +4398,8 @@
       "stroke": "#10b981",
       "text": "Tempo",
       "sub": "full tier",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -4048,7 +4411,8 @@
       "stroke": "#f59e0b",
       "text": "CloudWatch EMF + Logs",
       "sub": "floor tier",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -4060,7 +4424,8 @@
       "stroke": "#10b981",
       "text": "Amazon Grafana",
       "sub": "SSO role associations",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -4072,7 +4437,8 @@
       "stroke": "#f59e0b",
       "text": "Finance dashboard",
       "sub": "spend · top-N · forecast",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -4084,7 +4450,8 @@
       "stroke": "#10b981",
       "text": "Ops dashboard",
       "sub": "queue depth · p50/95/99",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -4096,7 +4463,8 @@
       "stroke": "#10b981",
       "text": "Founder dashboard",
       "sub": "tenants live · weekly trend",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -4108,7 +4476,8 @@
       "stroke": "#f59e0b",
       "text": "CloudWatch alarms",
       "sub": "severity SNS topics",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -4120,7 +4489,8 @@
       "stroke": "#ef4444",
       "text": "Alertmanager",
       "sub": "PagerDuty · persona Slack",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -4132,7 +4502,8 @@
       "stroke": "#8b5cf6",
       "text": "SLOPolicy CR",
       "sub": "objective + windows",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -4144,7 +4515,8 @@
       "stroke": "#10b981",
       "text": "burn-rate query",
       "sub": "multi-window",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -4156,7 +4528,8 @@
       "stroke": "#94a3b8",
       "text": "holds ArgoCD sync",
       "sub": "single-writer on AppProject",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "edge",
@@ -4320,7 +4693,8 @@
       "w": 600,
       "h": 592,
       "stroke": "#f59e0b",
-      "text": "Budget → kill switch"
+      "text": "Budget → kill switch",
+      "note": "fires at ≥120% of monthlyUsd"
     },
     {
       "type": "zone",
@@ -4330,7 +4704,8 @@
       "w": 600,
       "h": 208,
       "stroke": "#ef4444",
-      "text": "What the switch does"
+      "text": "What the switch does",
+      "note": "AWS-side only — it cannot reach the cluster"
     },
     {
       "type": "zone",
@@ -4340,7 +4715,8 @@
       "w": 316,
       "h": 464,
       "stroke": "#8b5cf6",
-      "text": "How the cluster finds out"
+      "text": "How the cluster finds out",
+      "note": "drift detection, ≤60s in production"
     },
     {
       "type": "zone",
@@ -4350,7 +4726,8 @@
       "w": 316,
       "h": 336,
       "stroke": "#0c1226",
-      "text": "Recovery"
+      "text": "Recovery",
+      "note": "no CR mutation, no API path back"
     },
     {
       "type": "zone",
@@ -4360,7 +4737,8 @@
       "w": 600,
       "h": 336,
       "stroke": "#10b981",
-      "text": "EvalSuite → rollout gate"
+      "text": "EvalSuite → rollout gate",
+      "note": "a score gates a deploy"
     },
     {
       "type": "zone",
@@ -4370,7 +4748,8 @@
       "w": 316,
       "h": 336,
       "stroke": "#8b5cf6",
-      "text": "SLOPolicy → sync hold"
+      "text": "SLOPolicy → sync hold",
+      "note": "single-writer on the AppProject"
     },
     {
       "type": "zone",
@@ -4380,7 +4759,8 @@
       "w": 316,
       "h": 336,
       "stroke": "#ef4444",
-      "text": "Who gets paged"
+      "text": "Who gets paged",
+      "note": ""
     },
     {
       "type": "node",
@@ -4392,7 +4772,8 @@
       "stroke": "#f59e0b",
       "text": "BudgetReconciler tick",
       "sub": "1h prod · 5m dev",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -4404,7 +4785,8 @@
       "stroke": "#f59e0b",
       "text": "Athena CUR sum",
       "sub": "month-to-date, by PlatformId",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -4416,7 +4798,8 @@
       "stroke": "#f59e0b",
       "text": "CloudWatch in-flight",
       "sub": "last 24h estimate",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -4428,7 +4811,8 @@
       "stroke": "#f59e0b",
       "text": "spend + in-flight → pct",
       "sub": "written to .status",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -4440,7 +4824,8 @@
       "stroke": "#f59e0b",
       "text": "EventBridge bus",
       "sub": "BudgetBreach event",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -4452,7 +4837,8 @@
       "stroke": "#ef4444",
       "text": "Step Functions",
       "sub": "started by an EventBridge rule",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -4464,7 +4850,8 @@
       "stroke": "#ef4444",
       "text": "DetachRolePolicy",
       "sub": "the Bedrock baseline",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -4476,7 +4863,8 @@
       "stroke": "#ef4444",
       "text": "TagRole suspended=true",
       "sub": "so it is not re-attached",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -4488,7 +4876,8 @@
       "stroke": "#8b5cf6",
       "text": "PlatformReconciler GetRole",
       "sub": "reads the tag",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -4500,7 +4889,8 @@
       "stroke": "#8b5cf6",
       "text": "phase = Suspended",
       "sub": "+ suspendedAt · reason",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -4512,7 +4902,8 @@
       "stroke": "#06b6d4",
       "text": "fleet scaled to zero",
       "sub": "Deployments + ScaledObject",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -4524,7 +4915,8 @@
       "stroke": "#ef4444",
       "text": "ops untags the role",
       "sub": "SSO elevation · MFA · approver",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -4536,7 +4928,8 @@
       "stroke": "#8b5cf6",
       "text": "baseline re-attached",
       "sub": "next reconcile",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -4548,7 +4941,8 @@
       "stroke": "#94a3b8",
       "text": "Argo CronWorkflow",
       "sub": "eval-runner template",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -4560,7 +4954,8 @@
       "stroke": "#10b981",
       "text": "golden + adversarial",
       "sub": "injection cases too",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -4572,7 +4967,8 @@
       "stroke": "#94a3b8",
       "text": "AnalysisTemplate",
       "sub": "Argo Rollouts gate",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -4584,7 +4980,8 @@
       "stroke": "#10b981",
       "text": "status.lastScore",
       "sub": "written back by the runner",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -4596,7 +4993,8 @@
       "stroke": "#10b981",
       "text": "burn rate breach",
       "sub": "multi-window",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -4608,7 +5006,8 @@
       "stroke": "#94a3b8",
       "text": "ArgoCD sync held",
       "sub": "stops shipping into a fire",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -4620,7 +5019,8 @@
       "stroke": "#ef4444",
       "text": "PagerDuty + #incidents",
       "sub": "critical route",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -4632,7 +5032,8 @@
       "stroke": "#10b981",
       "text": "persona Slack channel",
       "sub": "the team that owns it",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "edge",
@@ -4785,6 +5186,16 @@
       "text": "",
       "dashed": false,
       "stroke": "#10b981"
+    },
+    {
+      "type": "callout",
+      "lane": 0,
+      "x": 672,
+      "y": 0,
+      "w": 312,
+      "h": 180,
+      "title": "Why the switch takes the long way",
+      "body": "EventBridge cannot call a Kubernetes API, so the switch only changes AWS state and the operator's existing loop picks the change up as drift. Nothing new is coupled to the cluster; the price is one reconcile interval of lag."
     }
   ],
   "lifecycle": [
@@ -4804,7 +5215,8 @@
       "w": 884,
       "h": 208,
       "stroke": "#94a3b8",
-      "text": "Intent"
+      "text": "Intent",
+      "note": "a form, a CR, or a factory run"
     },
     {
       "type": "zone",
@@ -4814,7 +5226,8 @@
       "w": 600,
       "h": 336,
       "stroke": "#ef4444",
-      "text": "Before anything is written"
+      "text": "Before anything is written",
+      "note": "server-side, not advisory"
     },
     {
       "type": "zone",
@@ -4824,7 +5237,8 @@
       "w": 600,
       "h": 336,
       "stroke": "#94a3b8",
-      "text": "GitOps state"
+      "text": "GitOps state",
+      "note": "the source of truth for what should exist"
     },
     {
       "type": "zone",
@@ -4834,7 +5248,8 @@
       "w": 316,
       "h": 592,
       "stroke": "#3b82f6",
-      "text": "The cluster line · eks-fleet"
+      "text": "The cluster line · eks-fleet",
+      "note": "hub manufactures into spoke accounts"
     },
     {
       "type": "zone",
@@ -4844,7 +5259,8 @@
       "w": 884,
       "h": 336,
       "stroke": "#8b5cf6",
-      "text": "The tenant line · eks-agent-platform"
+      "text": "The tenant line · eks-agent-platform",
+      "note": "ArgoCD applies; the operator reconciles what lands"
     },
     {
       "type": "zone",
@@ -4854,7 +5270,8 @@
       "w": 316,
       "h": 464,
       "stroke": "#3b82f6",
-      "text": "Read path"
+      "text": "Read path",
+      "note": "the cluster always wins"
     },
     {
       "type": "node",
@@ -4866,7 +5283,8 @@
       "stroke": "#3b82f6",
       "text": "portal form",
       "sub": "templates · caps · RBAC",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -4878,7 +5296,8 @@
       "stroke": "#8b5cf6",
       "text": "agentctl",
       "sub": "scaffolds a Platform",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -4890,7 +5309,8 @@
       "stroke": "#8b5cf6",
       "text": "fab run",
       "sub": "builds a whole tenant repo",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -4902,7 +5322,8 @@
       "stroke": "#3b82f6",
       "text": "helm-render the chart",
       "sub": "tenant chart, in-process",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -4914,7 +5335,8 @@
       "stroke": "#ef4444",
       "text": "budget · family · compliance",
       "sub": "admin-set caps enforced",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -4926,7 +5348,8 @@
       "stroke": "#ef4444",
       "text": "validate-platform-manifests",
       "sub": "route wire format gate",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -4938,7 +5361,8 @@
       "stroke": "#ef4444",
       "text": "chart reject fixtures",
       "sub": "known-bad must fail",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -4950,7 +5374,8 @@
       "stroke": "#94a3b8",
       "text": "tenants repo",
       "sub": "rendered Platform + chart",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -4962,7 +5387,8 @@
       "stroke": "#94a3b8",
       "text": "clusters repo",
       "sub": "Cluster claims",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -4974,7 +5400,8 @@
       "stroke": "#94a3b8",
       "text": "ApplicationSet",
       "sub": "generators match on labels",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -4986,7 +5413,8 @@
       "stroke": "#94a3b8",
       "text": "sync waves",
       "sub": "ordering is the contract",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -4998,7 +5426,8 @@
       "stroke": "#3b82f6",
       "text": "Cluster (namespaced)",
       "sub": "Crossplane v2 — the API",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -5010,7 +5439,8 @@
       "stroke": "#3b82f6",
       "text": "Composition",
       "sub": "the line",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -5022,7 +5452,8 @@
       "stroke": "#f59e0b",
       "text": "provider-opentofu Workspace",
       "sub": "runs network → cluster",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -5034,7 +5465,8 @@
       "stroke": "#f59e0b",
       "text": "EKS + endpoint/CA/OIDC",
       "sub": "written back to status",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -5046,7 +5478,8 @@
       "stroke": "#94a3b8",
       "text": "ArgoCD",
       "sub": "hub → labelled spokes",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -5058,7 +5491,8 @@
       "stroke": "#8b5cf6",
       "text": "Platform CR",
       "sub": "lands in the mgmt ns",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -5070,7 +5504,8 @@
       "stroke": "#8b5cf6",
       "text": "operator",
       "sub": "k8s objects + AWS state",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -5082,7 +5517,8 @@
       "stroke": "#f59e0b",
       "text": "tenant-substrate apply",
       "sub": "from spec.datastores",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -5094,7 +5530,8 @@
       "stroke": "#06b6d4",
       "text": "agent pods serving",
       "sub": "under the tenant role",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -5106,7 +5543,8 @@
       "stroke": "#f59e0b",
       "text": "SSM contract",
       "sub": "module → operator handoff",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -5118,7 +5556,8 @@
       "stroke": "#3b82f6",
       "text": "in-cluster watchers",
       "sub": "walk the Tenant CRs",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -5130,7 +5569,8 @@
       "stroke": "#3b82f6",
       "text": "DB projection",
       "sub": "what the UI reads",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "node",
@@ -5142,7 +5582,8 @@
       "stroke": "#3b82f6",
       "text": "ops feed + vend timeline",
       "sub": "queued → active, live",
-      "accent": false
+      "accent": false,
+      "step": null
     },
     {
       "type": "edge",

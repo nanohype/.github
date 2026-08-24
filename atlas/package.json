@@ -9,6 +9,7 @@
     "typecheck": "tsc --noEmit",
     "check": "node scripts/check-model.ts",
     "emit": "node scripts/emit.ts ../profile/assets/atlas",
+    "fallbacks": "node scripts/fallbacks.ts",
     "shots": "node scripts/shoot.ts shots"
   },
   "dependencies": {

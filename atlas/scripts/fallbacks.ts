@@ -1,9 +1,12 @@
 /**
  * Confirm A* found a route for every edge, without a browser.
+ *
+ * Through the composer, because the obstacle set is what decides whether a
+ * route exists. Routing here against a set the drawing does not use would
+ * assert that some other diagram has no fallbacks.
  */
-import { layout } from "../src/layout.ts";
 import { PERSPECTIVES } from "../src/perspectives/index.ts";
-import { routeEdges } from "../src/routing.ts";
+import { compose } from "../src/scene.ts";
 
 const warns: string[] = [];
 const orig = console.warn;
@@ -14,16 +17,7 @@ console.warn = (...args: unknown[]) => {
 };
 
 for (const p of PERSPECTIVES) {
-  const placed = layout(p);
-  routeEdges(
-    p.edges,
-    placed.nodes,
-    placed.gutters,
-    placed.nodes.map(({ x, y, w, h }) => ({ x, y, w, h })),
-    placed.bounds,
-    [...placed.titleBoxes, ...placed.zoneBands],
-    placed.zones.map(({ x, y, w, h }) => ({ x, y, w, h })),
-  );
+  compose(p);
 }
 
 console.warn = orig;

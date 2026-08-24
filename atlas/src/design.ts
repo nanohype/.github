@@ -17,6 +17,7 @@
  * Each semantic role gets a stroke/fill pair at a fixed contrast relationship,
  * so the mapping is learned once on the legend page and holds on all eleven.
  */
+import { SPACING } from "./layout.ts";
 import type { Color } from "./model.ts";
 
 export interface Swatch {
@@ -81,6 +82,10 @@ export const SKIN = {
  *
  * Names are Geist sans. Technical sublabels and arrow chips are Geist Mono.
  * The page title and callout titles are Instrument Serif.
+ *
+ * The edge label reads its size from the spacing scale: the chip's box is an
+ * obstacle the composer places the chip against, so the size that decides where
+ * a chip goes and the size it is drawn at have to be one value.
  */
 export const TYPE = {
   pageTitle: 28,
@@ -89,7 +94,7 @@ export const TYPE = {
   zoneNote: 12,
   nodeLabel: 12,
   nodeSub: 8,
-  edgeLabel: 8,
+  edgeLabel: SPACING.EDGE_LABEL,
   calloutTitle: 16,
   calloutBody: 12,
 } as const;
