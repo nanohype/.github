@@ -62,9 +62,6 @@ jobs:
       - name: Every edge resolves to a real node
         run: pnpm check
 
-      - name: Install Chromium
-        run: pnpm exec playwright install --with-deps chromium
-
       - name: Regenerate the diagrams
         run: pnpm emit
 
