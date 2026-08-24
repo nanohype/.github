@@ -41,6 +41,47 @@ export const SEMANTIC = {
   note: "black", // annotation, not a component
 } as const satisfies Record<string, Color>;
 
+/**
+ * The role vocabulary, derived from the map rather than declared beside it, so
+ * a role added to `SEMANTIC` is a role the type system already knows about.
+ */
+export type Role = keyof typeof SEMANTIC;
+
+/** The nine `Color` members a role claims. */
+type SemanticColor = (typeof SEMANTIC)[Role];
+
+/**
+ * `SEMANTIC` inverted. Sound only while the map is injective, which
+ * `check-model` asserts — two roles sharing a hue would silently lose one here
+ * and, on the page, would already be the same thing twice in the legend.
+ */
+const ROLE_BY_COLOR = Object.fromEntries(
+  Object.entries(SEMANTIC).map(([role, color]) => [color, role]),
+) as Record<SemanticColor, Role>;
+
+/**
+ * The role a node's colour states.
+ *
+ * Total over `Color` and over its absence. A renderer that picks its own
+ * default is a second place the palette is decided, and the two drift; this is
+ * the only place an uncoloured node acquires a meaning, and that meaning is
+ * annotation. `light-violet`, `light-green`, `light-red` and `white` are
+ * carried so the union stays total and no role claims them — `check-model`
+ * rejects a node that uses one, so a page cannot reach that branch.
+ */
+export function roleOf(color: Color | undefined): Role {
+  switch (color) {
+    case undefined:
+    case "light-violet":
+    case "light-green":
+    case "light-red":
+    case "white":
+      return "note";
+    default:
+      return ROLE_BY_COLOR[color];
+  }
+}
+
 export interface Node {
   id: string;
   label: string;
@@ -78,8 +119,6 @@ export interface Edge {
   color?: Color;
   /** Dashed reads as "references / derives from" rather than "flows into". */
   dashed?: boolean;
-  /** Draw the arrow bowing by this many pixels — separates parallel edges. */
-  bend?: number;
   /** Anchor overrides, 0..1 within the node box, when the default centres cross. */
   fromAnchor?: { x: number; y: number };
   toAnchor?: { x: number; y: number };

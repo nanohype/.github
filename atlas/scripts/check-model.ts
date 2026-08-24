@@ -11,6 +11,7 @@
  * boxes the layout module just placed — a diagram that is subtly wrong rather
  * than obviously broken.
  */
+import { SEMANTIC } from "../src/model.ts";
 import { PERSPECTIVES } from "../src/perspectives/index.ts";
 
 const MAX_LABEL = 34;
@@ -27,6 +28,16 @@ function fail(message: string) {
 function warn(message: string) {
   console.warn(`WARN  ${message}`);
   warnings += 1;
+}
+
+// `roleOf` inverts SEMANTIC, and an inverse exists only while the map is
+// injective. Two roles on one hue would lose one of them silently here, and on
+// the page they would already be the same thing twice in the legend.
+const roleByColor = new Map<string, string>();
+for (const [role, color] of Object.entries(SEMANTIC)) {
+  const claimed = roleByColor.get(color);
+  if (claimed) fail(`roles ${claimed} and ${role} both claim ${color}`);
+  roleByColor.set(color, role);
 }
 
 const seenPerspectives = new Set<string>();
@@ -55,6 +66,12 @@ for (const p of PERSPECTIVES) {
         nodeIds.add(node.id);
         nodeCount.total += 1;
 
+        // A colour outside SEMANTIC states no role, so the page would be
+        // asserting a legend entry that does not exist.
+        if (node.color !== undefined && !roleByColor.has(node.color)) {
+          fail(`[${p.id}] node ${node.id}: colour ${node.color} names no role`);
+        }
+
         if (node.label.length > MAX_LABEL) {
           warn(
             `[${p.id}] label ${node.label.length}/${MAX_LABEL} chars will distort layout: "${node.label}"`,
@@ -70,10 +87,17 @@ for (const p of PERSPECTIVES) {
   }
 
   const connected = new Set<string>();
+  // The node pair addresses the edge — it is the id a route, a chip and a hop
+  // are all keyed by. Two edges sharing a pair would be two things with one
+  // name, and whichever is looked up second is unreachable.
+  const edgePairs = new Set<string>();
   for (const edge of p.edges) {
     if (!nodeIds.has(edge.from)) fail(`[${p.id}] edge from unknown node: ${edge.from}`);
     if (!nodeIds.has(edge.to)) fail(`[${p.id}] edge to unknown node: ${edge.to}`);
     if (edge.from === edge.to) fail(`[${p.id}] self-edge on ${edge.from}`);
+    const pair = `${edge.from}~${edge.to}`;
+    if (edgePairs.has(pair)) fail(`[${p.id}] duplicate edge: ${pair}`);
+    edgePairs.add(pair);
     connected.add(edge.from);
     connected.add(edge.to);
   }

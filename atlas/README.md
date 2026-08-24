@@ -33,6 +33,7 @@ src/model.ts          the diagram vocabulary — no rendering, no coordinates
 src/perspectives/     one file per page; this is the content
 src/layout.ts         deterministic geometry, and the gutters between it
 src/routing.ts        which side an arrow leaves from, and its orthogonal path
+src/scene.ts          the composer — the only caller of layout and the router
 src/design.ts         palette and type scale
 src/editorial.ts      the only module that writes SVG
 ```
@@ -40,12 +41,18 @@ src/editorial.ts      the only module that writes SVG
 The split is what makes a page reviewable: a wrong arrow is a wrong line in a
 data file, not a wrong number in a canvas.
 
+A route is a function of the obstacle set, not of the nodes, so a caller free to
+pick its own obstacles is a caller free to draw a different diagram from the
+same model. `compose()` is the only thing that lays out, routes or anchors a
+label; every surface reads the Scene it returns.
+
 ## Working on it
 
 ```bash
 pnpm install
 pnpm dev            # browse all eleven
 pnpm check          # every edge resolves to a real node, on every page
+pnpm fallbacks      # A* found a route for every edge, on every page
 pnpm emit           # write profile/assets/atlas/*.svg
 ```
 

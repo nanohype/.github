@@ -24,13 +24,13 @@ import type { Point, Side } from "./routing.ts";
 /**
  * Grid resolution and box clearance, and these two numbers are coupled.
  *
- * Nodes in a zone sit NODE_GAP (22px) apart. At MARGIN 8 that leaves 6px of
- * free space between two neighbours, which at CELL 10 rounds away to nothing —
- * so there was no legal corridor between adjacent boxes at all, A* failed, and
- * every one of those edges fell through to a fallback that ignores obstacles.
- * That is what put lines across node boxes.
- *
- * At CELL 6 / MARGIN 5 the same gap leaves 12px — two usable cells.
+ * `MARGIN` inflates every obstacle, so the corridor between two neighbours in a
+ * zone is `SPACING.NODE_GAP` less twice the margin, and `CELL` decides how much
+ * of that survives rounding onto the grid. A corridor that rounds away to
+ * nothing is not a tight route, it is no route: A* fails and the edge falls
+ * through to a heuristic that ignores obstacles, which is what draws a line
+ * across a box. `pnpm fallbacks` is the gate on that pair — it fails if any
+ * edge on any page takes the heuristic.
  */
 export const CELL = 6;
 const MARGIN = 7;

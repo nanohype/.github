@@ -49,8 +49,6 @@ for (const [i, tab] of tabs.entries()) {
     .toLowerCase();
 
   await tab.click();
-  // zoomToFit animates for 160ms; give it that plus a frame to settle.
-  await page.waitForTimeout(600);
 
   const file = `${outDir}/${String(i).padStart(2, "0")}-${name}.png`;
   await page.screenshot({ path: file });
