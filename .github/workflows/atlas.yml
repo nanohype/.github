@@ -67,12 +67,13 @@ jobs:
 
       # The gate compares a fingerprint of the scene, not the rendered SVGs.
       #
-      # Byte-comparing the SVGs was tried and does not work across platforms:
-      # text elements are sized by measuring the string, and Chromium measures
-      # differently on macOS and Linux — 0.44px on a short label, 1.5px on a
-      # page title. Every one of the 22 files differed purely from running on a
-      # different OS, which is a gate that fails for a reason nobody can act on,
-      # and those get deleted rather than fixed.
+      # A byte comparison cannot cross runners. Text elements are sized by
+      # measuring the string, and Chromium measures differently on macOS and
+      # Linux — fractions of a pixel on a short label, more on a page title,
+      # and every emitted file carries text. A byte diff between two runners
+      # therefore reports which runner ran, not whether the drawing moved, and
+      # a gate that fails for a reason nobody can act on is worth less than no
+      # gate at all.
       #
       # The fingerprint carries what comes from the model — every box's
       # position and size, every colour, every string — and omits the measured
