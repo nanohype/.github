@@ -2,7 +2,7 @@
   "name": "@nanohype/atlas",
   "private": true,
   "type": "module",
-  "packageManager": "pnpm@11.21.0",
+  "packageManager": "pnpm@11.23.0",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -18,11 +18,11 @@
   },
   "devDependencies": {
     "@types/react": "19.2.18",
-    "@types/react-dom": "19.2.4",
-    "@vitejs/plugin-react": "6.0.5",
+    "@types/react-dom": "19.2.5",
+    "@vitejs/plugin-react": "6.1.0",
     "playwright": "1.62.1",
     "typescript": "7.0.2",
-    "vite": "8.2.1"
+    "vite": "8.2.2"
   },
   "description": "Architecture diagrams for the nanohype stack, and the generator that produces them.",
   "license": "Apache-2.0"
