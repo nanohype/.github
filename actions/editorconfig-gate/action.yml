@@ -29,6 +29,11 @@ runs:
   using: composite
   steps:
     - shell: bash
+      # Pinned to the workspace so a relative `path` means the same thing in
+      # every consumer. A calling job may set `defaults.run.working-directory`
+      # for its own steps, and an action whose tree moved with it would read a
+      # subdirectory and report success over the rest of the repository.
+      working-directory: ${{ github.workspace }}
       env:
         SELF_TEST: ${{ inputs['self-test'] }}
         TREE: ${{ inputs.path }}

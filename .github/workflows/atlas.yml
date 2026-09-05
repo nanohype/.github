@@ -65,6 +65,19 @@ jobs:
       - name: Regenerate the diagrams
         run: pnpm emit
 
+      # Read what the generator just wrote, not what is committed. A generated
+      # artifact that breaks .editorconfig is a defect in the generator, and
+      # this is the only job that holds both at once — the gate elsewhere reads
+      # the committed bytes, which agree with the generator only until they do
+      # not.
+      #
+      # This job sets `defaults.run.working-directory: atlas`, so it is also
+      # where the action's own pinning to the workspace is exercised: an action
+      # that inherited the caller's directory would read atlas/ and report
+      # success over the rest of the repository.
+      - name: What the generator wrote matches .editorconfig
+        uses: ./actions/editorconfig-gate
+
       # The gate compares a fingerprint of the scene, not the rendered SVGs.
       #
       # A byte comparison cannot cross runners. Text elements are sized by
