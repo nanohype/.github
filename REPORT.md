@@ -80,7 +80,7 @@ trailing space:
   - chart.yaml:1: has trailing whitespace, and trim_trailing_whitespace is true
 ```
 
-**The gate fails without the fix.** Thirty-four mutations, each applied to a copy of the
+**The gate fails without the fix.** Thirty-six mutations, each applied to a copy of the
 action and run against both suites. None survives. The reading:
 
 | mutation | caught by |
@@ -125,12 +125,53 @@ after the shell in `action.yml` has read it:
 | the `self-test` input becomes decoration | `test_check_editorconfig.py`, *and skips it when told to, so the input is not decoration* |
 | the wrapper ignores the `path` input | `test_check_editorconfig.py`, *the wrapper forwards a passing verdict, silently* |
 | the wrapper acquires a fetch of its own | `test_check_editorconfig.py`, *the shell the action ships fetches nothing* |
+| a failed self-test stops saying nothing was checked | `test_check_editorconfig.py`, *a checker that could not run says so: the interpreter is missing* |
+| a self-test failure is forgiven | `test_check_editorconfig.py`, *a checker that could not run says so: the interpreter is missing* |
 
 Actions runs a composite `shell: bash` step as `bash -e -o pipefail`, and under `-e` the
 gate's own non-zero exit ends the step before its code can be read — leaving a red check
 with no annotation saying which of the two non-zero verdicts it is. The wrapper turns `-e`
 off for exactly that reason, and `test_check_editorconfig.py` lifts the shell out of the
 manifest and runs it under the same flags rather than restating it.
+
+**What a reader sees when the checker cannot run.** The failure that started this printed as
+a format check on a tree with no formatting defect, so the wording is asserted rather than
+described. Every annotation that is not a finding carries the same phrase, `NOTHING WAS
+CHECKED`, so the distinction is one string a reader can look for.
+
+With the network gone and the gate intact, the gate is unaffected — it reads the tree and
+reaches a real verdict, which is the whole point of the mechanism:
+
+```
+::error title=editorconfig gate::Files do not match what .editorconfig declares for them.
+Each finding above names the file, the line and the rule.
+```
+
+When the checker itself cannot run, the wording changes and the exit code changes with it.
+`python3` absent, for instance:
+
+```
+::error title=editorconfig gate::NOTHING WAS CHECKED — the gate's own self-test failed
+(exit 127), so '/home/runner/work/repo/repo' was never read. This is not a finding about
+the tree.
+```
+
+and a tree the gate cannot decide:
+
+```
+::error title=editorconfig gate::NOTHING WAS CHECKED (exit 3). No file was compared against
+anything, so this is not a finding about the tree.
+```
+
+Six ways the checker can fail to run are driven through the shell the action ships — the
+interpreter missing, the interpreter exiting 127, 2 or 137, `git` absent, and the gate's own
+file gone — and each is required to produce exactly one annotation carrying `NOTHING WAS
+CHECKED` and not carrying the finding wording. Exit 1 is reachable only from named findings,
+so there is no path from an unrunnable checker to a sentence about a malformed file.
+
+The remaining case sits outside the gate: if GitHub cannot serve the pinned action, the
+runner fails at action resolution with `Unable to resolve action …@<sha>`, before the step
+exists. That is a setup failure with its own message, not a format verdict.
 
 **What it refuses that a looser reading would pass.** Worth knowing before adoption, since
 each of these is a rule the declaration already makes: a byte-order mark under
@@ -156,6 +197,34 @@ Every section of the `.editorconfig` those five carry is one the gate decides. N
 path-relative pattern, a `?`, a character class or a nested brace list, and none carries a
 `.editorconfig` below the root.
 
+## Adoption order
+
+One thing has to land first, and after it the five are independent.
+
+**The action is on `main` at `b2eada7`.** That is the SHA a consumer pins, and nothing else
+has to land before adoption starts.
+
+**All five can go in parallel.** Nothing here is shared between them: each change is one
+`package.json`, one lockfile and one workflow step, in its own repository. No seat waits on
+another, and no seat waits on anything but the merge above.
+
+The prerequisites a seat would otherwise have to discover are already satisfied:
+
+| what adoption needs | state |
+| --- | --- |
+| the repository may consume a first-party action from `nanohype/.github` | every one of the five already pins `nanohype/.github/actions/merge-gate`, so the path is proven in each |
+| `python3` and `git` on the runner | the job hosting the step is `ubuntu-latest` in all five, which carries both |
+| a required-check or `needs:` edit | none — the step keeps its place in the job it already sits in |
+| branch protection | untouched, in all five |
+
+Two seat-local notes:
+
+- **`nanohype`** must carry the four `docs/diagrams/svg/` newline fixes in the same pull
+  request. Adopting without them turns its `editorconfig` job red on a real finding, which
+  reads as the adoption having broken something.
+- **Pin `b2eada7`**, the commit on `main`, not a branch tip. The bridge squash-merges, so a
+  branch commit is not in `main`'s history and Renovate has nothing to move it from.
+
 ## Adoption, per repository
 
 The common change, in every one of the five:
@@ -166,7 +235,7 @@ The common change, in every one of the five:
 2. **The CI step** — replace the `npm run editorconfig` step with:
 
    ```yaml
-         - uses: nanohype/.github/actions/editorconfig-gate@<sha>
+         - uses: nanohype/.github/actions/editorconfig-gate@b2eada7
    ```
 
    Delete the step's `env:` block with it: `GITHUB_TOKEN` was there to raise the rate limit
@@ -196,12 +265,19 @@ Two repositories carry extra work:
   download and the rate limit. It describes the download this replaces, so it goes with the
   step it explains.
 
-Three repositories that already carry a `.editorconfig` are not in the list and could adopt
-the same action: `eks-agent-platform` (which carries its own copy of this reading, and would
-converge onto the shared one), and this repository, whose only blocker is that
-`atlas/scripts/emit.ts` writes the eleven SVGs under `profile/assets/atlas/` without a final
-newline.
+Two repositories outside the five could adopt the same action, each as its own item:
 
-## Branch tip
+- **`eks-agent-platform`** carries its own copy of this reading. Converging it onto the
+  shared action removes the second copy, which is the whole reason the action exists.
+- **This repository** cannot gate its own tree yet. `atlas/scripts/emit.ts` writes the eleven
+  SVGs under `profile/assets/atlas/` without a final newline, so a root `.editorconfig`
+  declaring `insert_final_newline = true` would refuse a tree whose generator is what
+  produces it. The fix belongs in the generator, which is the diagram pipeline rather than
+  this gate. Until then a shared gate whose own repository is exempt from it is a stated
+  limit, and the action is still exercised here against crafted trees and through a real
+  invocation.
 
-Branch `editorconfig-gate`, pushed to `origin`. Not merged.
+## Where it is
+
+The action is on `main` at `b2eada7`, merged as #43. This report and the verdict-wording
+proof follow on their own branch.
