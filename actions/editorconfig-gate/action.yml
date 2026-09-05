@@ -1,0 +1,66 @@
+name: editorconfig gate
+description: >-
+  Checks a tree against the rules .editorconfig declares that no formatter owns —
+  charset, line endings, a final newline and no trailing whitespace. Reads the
+  files git tracks. Downloads nothing, so the verdict on a merge does not depend
+  on a third party answering.
+
+inputs:
+  path:
+    # No ${{ }} in any description on this file. Actions evaluates expressions
+    # inside input descriptions when it loads the manifest, so an example written
+    # there can fail the whole action to load — for every consumer, with an error
+    # that points here rather than at their workflow.
+    description: >-
+      The tree to read: its .editorconfig, and the files git tracks under it. A
+      relative path resolves against the workspace.
+    required: false
+    default: '.'
+  self-test:
+    description: >-
+      Run the gate against crafted trees before reading the real one, and fail if
+      any verdict it must produce has stopped being produced. Leave this on: a
+      gate that has quietly stopped rejecting passes everything, and the tree it
+      passed looks identical to a tree that conforms.
+    required: false
+    default: 'true'
+
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      env:
+        SELF_TEST: ${{ inputs['self-test'] }}
+        TREE: ${{ inputs.path }}
+        GATE: ${{ github.action_path }}/check_editorconfig.py
+      # The exit code carries which of the two non-zero verdicts this is, and
+      # Actions surfaces only pass/fail — so the code is read here and turned into
+      # an annotation that says it. A reader meeting a red check has to be able to
+      # tell "your file is malformed" from "nothing was checked", because only one
+      # of them is about their branch.
+      run: |
+        # Actions runs a composite bash step as `bash -e -o pipefail`, and under
+        # `-e` the gate's own non-zero exit ends the step before its code can be
+        # read. The code is the verdict, so it is read here instead: `+e` keeps
+        # the shell alive long enough to say which of the two non-zero verdicts
+        # this is, and the same code is re-raised at the end.
+        set +e
+        set -u
+
+        if [ "$SELF_TEST" = "true" ]; then
+          python3 "$GATE" --self-test
+          selftest=$?
+          if [ "$selftest" -ne 0 ]; then
+            echo "::error title=editorconfig gate::The gate's own self-test failed, so nothing was checked against '$TREE'. This is not a finding about the tree."
+            exit "$selftest"
+          fi
+        fi
+
+        python3 "$GATE" --root "$TREE"
+        verdict=$?
+        case "$verdict" in
+          0) ;;
+          1) echo "::error title=editorconfig gate::Files do not match what .editorconfig declares for them. Each finding above names the file, the line and the rule." ;;
+          *) echo "::error title=editorconfig gate::NOTHING WAS CHECKED (exit $verdict). No file was compared against anything, so this is not a finding about the tree." ;;
+        esac
+        exit "$verdict"
