@@ -37,7 +37,9 @@ runs:
       # Actions surfaces only pass/fail — so the code is read here and turned into
       # an annotation that says it. A reader meeting a red check has to be able to
       # tell "your file is malformed" from "nothing was checked", because only one
-      # of them is about their branch.
+      # of them is about their branch. Every annotation that is not a finding
+      # carries the same phrase, NOTHING WAS CHECKED, so the distinction is one
+      # string a reader can look for rather than a sentence they have to parse.
       run: |
         # Actions runs a composite bash step as `bash -e -o pipefail`, and under
         # `-e` the gate's own non-zero exit ends the step before its code can be
@@ -51,7 +53,7 @@ runs:
           python3 "$GATE" --self-test
           selftest=$?
           if [ "$selftest" -ne 0 ]; then
-            echo "::error title=editorconfig gate::The gate's own self-test failed, so nothing was checked against '$TREE'. This is not a finding about the tree."
+            echo "::error title=editorconfig gate::NOTHING WAS CHECKED — the gate's own self-test failed (exit $selftest), so '$TREE' was never read. This is not a finding about the tree."
             exit "$selftest"
           fi
         fi

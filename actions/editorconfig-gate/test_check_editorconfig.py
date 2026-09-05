@@ -35,6 +35,9 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 GATE = HERE / "check_editorconfig.py"
 MANIFEST = HERE / "action.yml"
+# Resolved once, and invoked by absolute path: the cases below hand the step a
+# PATH holding nothing, and a shell found through PATH could not be started.
+BASH = shutil.which("bash") or "/bin/bash"
 
 EXIT_CLEAN = 0
 EXIT_FINDING = 1
@@ -124,7 +127,17 @@ def wrapper_body():
     return "\n".join(body) + "\n"
 
 
-def run_wrapper(script: Path, self_test: str, tree: Path):
+def stub_bin(root: Path, name: str, body: str) -> Path:
+    """A directory holding one executable, to put in front of PATH."""
+    where = root / f"bin-{name}-{abs(hash(body)) % 100000}"
+    where.mkdir(parents=True, exist_ok=True)
+    shim = where / name
+    shim.write_text(f"#!/bin/sh\n{body}\n", encoding="utf-8")
+    shim.chmod(0o755)
+    return where
+
+
+def run_wrapper(script: Path, self_test: str, tree: Path, path=None):
     """The step as Actions runs it: `bash -e -o pipefail`, which is the hazard.
 
     Under `-e` the gate's own non-zero exit ends the step before the wrapper can
@@ -133,8 +146,10 @@ def run_wrapper(script: Path, self_test: str, tree: Path):
     checker that did not run.
     """
     env = dict(os.environ, SELF_TEST=self_test, TREE=str(tree), GATE=str(GATE))
+    if path is not None:
+        env["PATH"] = path
     proc = subprocess.run(
-        ["bash", "--noprofile", "--norc", "-e", "-o", "pipefail", str(script)],
+        [BASH, "--noprofile", "--norc", "-e", "-o", "pipefail", str(script)],
         capture_output=True,
         text=True,
         env=env,
@@ -527,6 +542,75 @@ def main() -> int:
             and "do not match" not in marks[0],
             said,
         )
+
+    # ── The wording, under every way the checker itself can fail to run ──
+    #
+    # Exit 1 is the sentence "a file in your branch is malformed". A checker that
+    # could not run must never reach it, whatever stopped it — that collision is
+    # the failure this gate replaces, and it survives the choice of mechanism, so
+    # it is asserted against the shell a consumer actually invokes rather than
+    # against the Python alone.
+    with tempfile.TemporaryDirectory() as raw:
+        root = Path(raw)
+        tree = root / "tree"
+        tree.mkdir()
+        build(tree, ORG_CONFIG, dict(ORG_TREE, **{"chart.yaml": "key: value \n"}))
+        script = root / "step.sh"
+        script.write_text(wrapper_body(), encoding="utf-8")
+
+        real_python = shutil.which("python3") or sys.executable
+        empty = root / "bin-empty"
+        empty.mkdir()
+        broken = [
+            ("the interpreter is missing", empty),
+            ("the interpreter exits 127", stub_bin(root, "python3", "exit 127")),
+            ("the interpreter exits 2, argparse's own code", stub_bin(root, "python3", "exit 2")),
+            ("the interpreter is killed", stub_bin(root, "python3", "exit 137")),
+            (
+                "git is not on PATH",
+                stub_bin(root, "python3", f'exec "{real_python}" "$@"'),
+            ),
+            (
+                "the gate's own file is gone",
+                stub_bin(root, "python3", f'exec "{real_python}" /nonexistent-gate.py'),
+            ),
+        ]
+        for label, where in broken:
+            # PATH is the stub alone: nothing else resolves, so git is absent too.
+            code, said = run_wrapper(script, "true", tree, path=str(where))
+            marks = annotations(said)
+            check.that(
+                f"{'a checker that could not run says so: ' + label:<70} exit={code}",
+                code != EXIT_CLEAN
+                and code != EXIT_FINDING
+                and len(marks) == 1
+                and "NOTHING WAS CHECKED" in marks[0]
+                and "do not match" not in marks[0],
+                said,
+            )
+
+        # And the control: with the network taken away but the checker intact,
+        # the reader is told about their file, because the gate did run.
+        env, home = no_network_env()
+        try:
+            offline = subprocess.run(
+                [BASH, "--noprofile", "--norc", "-e", "-o", "pipefail", str(script)],
+                capture_output=True,
+                text=True,
+                env=dict(env, SELF_TEST="true", TREE=str(tree), GATE=str(GATE)),
+                check=False,
+            )
+            marks = annotations(offline.stdout + offline.stderr)
+            check.that(
+                f"{'with the network gone the reader is told about the file':<70} "
+                f"exit={offline.returncode}",
+                offline.returncode == EXIT_FINDING
+                and len(marks) == 1
+                and "do not match" in marks[0],
+                offline.stdout + offline.stderr,
+            )
+        finally:
+            shutil.rmtree(home, ignore_errors=True)
 
     # Static, alongside the behavioural proof: nothing in the gate can reach the
     # network even by a path no case happens to walk. Parsed rather than searched
