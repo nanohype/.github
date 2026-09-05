@@ -1,0 +1,159 @@
+name: ci
+
+# What this repository ships is consumed by every other one in the org: two
+# composite actions and the Renovate preset. A regression in any of them lands
+# everywhere at once and nothing downstream would notice, so each is exercised
+# here before it can be pinned.
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: gate fails closed
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: every failure mode still fails
+        run: python3 actions/merge-gate/test_gate.py
+
+  editorconfig-test:
+    name: editorconfig gate fails closed
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # The reading, against crafted trees: every verdict it must be able to
+      # reach, including the two that must never be confused for one another.
+      - name: the reading
+        run: python3 actions/editorconfig-gate/check_editorconfig.py --self-test
+      # The process, as a consumer invokes it: which exit code reaches the shell,
+      # whether argv is parsed strictly, that --root reads the named tree rather
+      # than the script's own, and that it decides with the network taken away.
+      - name: the process
+        run: python3 actions/editorconfig-gate/test_check_editorconfig.py
+
+  manifest:
+    name: every action.yml is loadable
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # A manifest is loaded by Actions before a single step of it runs, so a
+      # manifest that cannot load fails in the consumer with an error pointing at
+      # this repository. Reading every one of them here means adding an action
+      # cannot skip the check by not being named.
+      - name: they parse
+        run: |
+          python3 - <<'PY'
+          import pathlib, sys, yaml
+          manifests = sorted(pathlib.Path("actions").glob("*/action.yml"))
+          if not manifests:
+              sys.exit("actions/ holds no action.yml; this job would pass by reading nothing")
+          for manifest in manifests:
+              yaml.safe_load(manifest.read_text())
+              print(f"ok  {manifest}")
+          PY
+
+  # default.json is consumed by every repository in the org, so a preset that
+  # cannot load, or one whose floor disagrees with the package managers, lands
+  # everywhere at once.
+  renovate-preset:
+    name: renovate preset is valid and holds its floor
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: the schema
+        run: npx --yes --package renovate renovate-config-validator --strict default.json
+      # The validator only knows the schema. It accepts `minimumReleaseAge:
+      # "3 bananas"` because the schema says "string" and stops there, and it has
+      # no opinion at all on whether the value agrees with the package managers
+      # that consume the lockfiles Renovate writes. That agreement is the actual
+      # invariant, so it gets its own check — and a self-test, because a gate
+      # nobody has watched fail is not known to be a gate.
+      - name: the floor, and proof the check can fail
+        run: |
+          python3 scripts/check-renovate-floor.py
+          python3 scripts/check-renovate-floor.py --self-test
+
+  # The only place the editorconfig action is *invoked* rather than merely read.
+  # A test that exercises the script but not the artifact consumers load is not
+  # testing the thing that ships: the manifest, the inputs, the shell wrapper and
+  # the exit code it forwards are all outside the Python.
+  #
+  # Both verdicts, because an action that can only be watched passing is not
+  # known to be a gate. The trees are built here rather than committed: a tree
+  # carrying a deliberate defect is a defect in this repository the moment
+  # anything else reads it.
+  editorconfig-invoked:
+    name: editorconfig gate, invoked
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: two trees, one of which breaks a rule
+        env:
+          CONFIG: |
+            root = true
+
+            [*]
+            charset = utf-8
+            end_of_line = lf
+            insert_final_newline = true
+            trim_trailing_whitespace = true
+
+            [*.md]
+            trim_trailing_whitespace = false
+        run: |
+          set -euo pipefail
+          for tree in clean dirty; do
+            mkdir -p "$RUNNER_TEMP/$tree"
+            printf '%s' "$CONFIG" > "$RUNNER_TEMP/$tree/.editorconfig"
+            printf 'key: value\n' > "$RUNNER_TEMP/$tree/a.yaml"
+            git -C "$RUNNER_TEMP/$tree" init -q
+          done
+          printf 'key: value \n' > "$RUNNER_TEMP/dirty/a.yaml"
+          for tree in clean dirty; do
+            git -C "$RUNNER_TEMP/$tree" add -A
+          done
+
+      - name: it passes a tree that matches its declaration
+        uses: ./actions/editorconfig-gate
+        with:
+          path: ${{ runner.temp }}/clean
+
+      - name: it reads a tree that does not
+        id: refuse
+        continue-on-error: true
+        uses: ./actions/editorconfig-gate
+        with:
+          path: ${{ runner.temp }}/dirty
+          self-test: 'false'
+
+      - name: it refused
+        run: |
+          if [ "${{ steps.refuse.outcome }}" != "failure" ]; then
+            echo "::error::the action passed a tree with a planted trailing space, so it is not gating anything"
+            exit 1
+          fi
+          echo "the action refused the planted violation"
+
+  merge-gate:
+    name: merge gate
+    runs-on: ubuntu-latest
+    needs: [test, editorconfig-test, manifest, renovate-preset, editorconfig-invoked]
+    if: always()
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # This is also the only place the merge-gate action is invoked rather than
+      # read. Actions loads a manifest before any step of it runs, so a job that
+      # runs gate.py and never uses the action leaves the manifest, its inputs and
+      # its shell wrapper unexercised — and a manifest that cannot load fails in
+      # the consumer, with an error naming this repository. An expression in an
+      # input description is one way to write one, since Actions evaluates those
+      # at load time.
+      - uses: ./actions/merge-gate
+        with:
+          needs: ${{ toJSON(needs) }}
