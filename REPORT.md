@@ -181,6 +181,16 @@ under `insert_final_newline = false`, which is the mirror the declaration assert
 `.editorconfig` line that parses as neither a section nor a property, which stops the run
 rather than being dropped. None of the five trees trips any of them.
 
+**Against this repository's own tree.** 89 tracked paths, 83 compared; the six skipped are
+the `.woff2` fonts, which carry no line endings for any of these rules to describe. Reverting
+`atlas/scripts/emit.ts` to write its SVGs without a final newline and re-running `pnpm emit`
+makes the gate name all eleven of them and exit 1, which is the failure the generator fix
+removes:
+
+```
+  - profile/assets/atlas/00-legend-light.svg:1: has no final newline, and insert_final_newline is true
+```
+
 **Against the five real trees.** The gate was run against a clone of each consumer. Four
 pass. One has a real finding, which the checker being replaced was never able to report
 because it never completed a run:
@@ -265,17 +275,16 @@ Two repositories carry extra work:
   download and the rate limit. It describes the download this replaces, so it goes with the
   step it explains.
 
-Two repositories outside the five could adopt the same action, each as its own item:
+**This repository is inside the gate it publishes.** It carries the same `.editorconfig` as
+the five, and `ci.yml` runs the action against its own tree by local path, inside the
+`merge gate`. The generator that put it outside was fixed rather than exempted:
+`atlas/scripts/emit.ts` writes its SVGs with a final newline, and the atlas job runs the
+gate over what the generator just wrote, so an artifact that breaks the declaration fails in
+the job that produced it.
 
-- **`eks-agent-platform`** carries its own copy of this reading. Converging it onto the
-  shared action removes the second copy, which is the whole reason the action exists.
-- **This repository** cannot gate its own tree yet. `atlas/scripts/emit.ts` writes the eleven
-  SVGs under `profile/assets/atlas/` without a final newline, so a root `.editorconfig`
-  declaring `insert_final_newline = true` would refuse a tree whose generator is what
-  produces it. The fix belongs in the generator, which is the diagram pipeline rather than
-  this gate. Until then a shared gate whose own repository is exempt from it is a stated
-  limit, and the action is still exercised here against crafted trees and through a real
-  invocation.
+One repository outside the five could still adopt the same action, as its own item:
+**`eks-agent-platform`** carries its own copy of this reading, and converging it onto the
+shared action removes the second copy, which is the whole reason the action exists.
 
 ## Where it is
 

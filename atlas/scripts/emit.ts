@@ -34,7 +34,10 @@ const fingerprint: Record<string, unknown> = {};
 for (const [index, perspective] of PERSPECTIVES.entries()) {
   const stem = `${String(index).padStart(2, "0")}-${perspective.id}`;
   const svg = renderEditorialSvg(perspective, { fontCss });
-  await writeFile(`${outDir}/${stem}-light.svg`, svg, "utf8");
+  // Every file this repository tracks ends in a newline, and these are tracked.
+  // The renderer itself does not append one: App.tsx inlines the same string
+  // into the page, where a trailing newline is markup rather than a line ending.
+  await writeFile(`${outDir}/${stem}-light.svg`, `${svg}\n`, "utf8");
   manifest.push({
     index,
     id: perspective.id,

@@ -45,6 +45,11 @@ checkout. Put it in the job that already runs the formatters.
 The action needs the repository checked out **with its git directory** — `git ls-files` is
 how it learns which files are the repository's rather than the runner's.
 
+The step runs in the workspace whatever the calling job sets as its
+`defaults.run.working-directory`, so `path` means the same thing in every consumer. An
+action that inherited the caller's directory would read a subdirectory and report success
+over the rest of the repository.
+
 ## The two non-zero verdicts, and why they are separate
 
 A tree that breaks a rule and a checker that could not run both exit non-zero, and a reader

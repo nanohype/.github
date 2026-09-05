@@ -140,10 +140,25 @@ jobs:
           fi
           echo "the action refused the planted violation"
 
+  # The gate this repository publishes, run against this repository. A standard
+  # whose own repository sits outside it has an exemption nobody chose, and the
+  # exemption is invisible from every repository that did adopt it.
+  #
+  # By local path rather than by pin: a change to the action that would refuse
+  # this tree fails on the commit that makes it, rather than in the first
+  # consumer to upgrade.
+  editorconfig:
+    name: editorconfig
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: ./actions/editorconfig-gate
+
   merge-gate:
     name: merge gate
     runs-on: ubuntu-latest
-    needs: [test, editorconfig-test, manifest, renovate-preset, editorconfig-invoked]
+    needs:
+      [test, editorconfig-test, manifest, renovate-preset, editorconfig-invoked, editorconfig]
     if: always()
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
