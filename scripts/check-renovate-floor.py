@@ -32,6 +32,9 @@ import json
 import pathlib
 import re
 import sys
+from typing import Any
+
+Config = dict[str, Any]
 
 # pnpm 11's default `minimumReleaseAge`, in minutes. If pnpm's default moves, or
 # a repo sets its own lower floor, this constant is the thing to revisit — the
@@ -54,25 +57,47 @@ FIRST_PARTY_SCOPES = {"/^@shuttering//"}
 
 # Action refs that skip the floor, as they appear in matchPackageNames.
 #
-# The pnpm pairing above is a commitment about registry scopes only. An action
-# ref has no package-manager side: the Actions runner resolves it, and neither
-# pnpm nor npm reads it, so there is no second half to add in the consumers.
+# The pnpm pairing above is with pnpm install, and pnpm install never reads an
+# action ref, so an entry here has no install-time half. pnpm outdated and pnpm
+# update read action refs only when --include-github-actions or
+# update.githubActions opts in, and hold them to minimumReleaseAge in pnpm 11
+# from 11.28.0 and in pnpm 12 from 12.7.0, matching minimumReleaseAgeExclude
+# against the action and repository names. A consumer that updates actions that
+# way lists the same name there for the same exemption.
+#
 # What an entry here commits to is confinement. The exempting rule names action
-# refs and nothing else; it matches only the github-actions manager, the only
-# manager whose dependencies this reasoning covers; and it matches the same
-# names as depNames. The github-actions extractor gives a ref with an
+# refs and nothing else, matches only the github-actions manager, and matches
+# the same names as depNames. The github-actions extractor gives a ref with an
 # explicit host, such as https://gitea.example.com/nanohype/.github/..., the
 # packageName nanohype/.github and a depName that carries the host, so only the
-# depName tells the org's own repository from a namesake on another server.
+# depName tells the org's own repository from a namesake on another server. A
+# ref that spells out https://github.com/ gets a host-qualified depName too, and
+# keeps the floor.
 #
 # Entries are exact names, so an exemption covers the repository that was
 # reviewed and nothing else. A pattern widens it to names nobody reviewed:
 # "/\/\.github$/" also matches "evil/.github", which another owner controls.
 #
-# Every entry must also be exempt in fact. A digest update for a branch ref
-# carries no release timestamp, so under timestamp-required the floor holds it
-# pending indefinitely, and the github-actions group branch it lands in with it.
+# Every entry must also be exempt in fact (check_action_refs_exempt). A digest
+# update for a branch ref carries no release timestamp, so under
+# timestamp-required the floor holds it pending indefinitely, and the
+# github-actions group branch it lands in with it. Renovate matches names as
+# case-insensitive globs and as regexes, so a later rule naming the ref is not
+# the only one that can put the floor back: "*", "nanohype/*", "/^nanohype\//" and
+# "!lodash" all match it too.
 FIRST_PARTY_ACTION_REFS = {"nanohype/.github"}
+
+# Renovate reads a match* list entry wrapped in slashes as a regex, one starting
+# with "!" as a negation, and anything else as a minimatch glob that ignores case,
+# treats a run of slashes as one, and reads a leading "#" as a comment that
+# matches nothing. An entry that starts with none of /, ! or # and has no glob
+# syntax, no run of slashes and no . or .. segment matches only its own text,
+# ignoring case.
+GLOB_SYNTAX = re.compile(r"[*?\[\]{}()\\]|//|(?:^|/)\.\.?(?:/|$)")
+
+# Keys that change the names every later rule matches a dependency by, and the
+# names Renovate's second pass over packageRules matches it by.
+RENAMES = ("overrideDepName", "overridePackageName")
 
 # Renovate accepts duration strings such as "3 days" / "6 months" / "1 year".
 UNITS = {
@@ -105,7 +130,7 @@ def parse_duration(text: object) -> int:
     return int(m.group(1)) * UNITS[m.group(2)]
 
 
-def stated_block(cfg: dict, key: str, unstated: str) -> dict:
+def stated_block(cfg: Config, key: str, unstated: str) -> Config:
     """The config block under key. Raises Rejected, naming what goes unstated, if absent."""
     block = cfg.get(key)
     if not isinstance(block, dict):
@@ -113,7 +138,7 @@ def stated_block(cfg: dict, key: str, unstated: str) -> dict:
     return block
 
 
-def check_top_level(cfg: dict) -> tuple[list[str], int]:
+def check_top_level(cfg: Config) -> tuple[list[str], int]:
     """The floor every update starts from. Returns what was checked, and the floor in minutes."""
     if "minimumReleaseAge" not in cfg:
         raise Rejected(
@@ -137,7 +162,8 @@ def check_top_level(cfg: dict) -> tuple[list[str], int]:
     # timestamp-optional lets an update Renovate cannot date pass the floor
     # unchecked. Lock file maintenance is the one undated update this preset lets
     # through, because Renovate hands its floor to the tools that regenerate the
-    # lockfile, and its block sets the behaviour for it alone (checked below).
+    # lockfile, and its block sets the behaviour for it alone
+    # (check_lock_file_maintenance).
     behaviour = cfg.get("minimumReleaseAgeBehaviour", "timestamp-required")
     if behaviour != "timestamp-required":
         raise Rejected(
@@ -149,7 +175,7 @@ def check_top_level(cfg: dict) -> tuple[list[str], int]:
     return checked, minutes
 
 
-def check_security_path(cfg: dict) -> list[str]:
+def check_security_path(cfg: Config) -> list[str]:
     va = stated_block(cfg, "vulnerabilityAlerts", "the security path")
     if "minimumReleaseAge" not in va:
         raise Rejected(
@@ -165,7 +191,7 @@ def check_security_path(cfg: dict) -> list[str]:
     return ["vulnerabilityAlerts.minimumReleaseAge is explicitly null"]
 
 
-def check_lock_file_maintenance(cfg: dict, floor: int) -> list[str]:
+def check_lock_file_maintenance(cfg: Config, floor: int) -> list[str]:
     """Lock file maintenance keeps a floor and passes without a release timestamp.
 
     Its update regenerates a lockfile rather than moving a dependency to a
@@ -180,7 +206,7 @@ def check_lock_file_maintenance(cfg: dict, floor: int) -> list[str]:
     No packageRule can take the floor off this branch: every rule that sets
     minimumReleaseAge must name packages, and a lock file maintenance update
     carries no package name to match. No packageRule can set the behaviour
-    either (both checked in check_package_rules).
+    either. check_rule_placement and check_package_rules enforce both.
     """
     lfm = stated_block(cfg, "lockFileMaintenance", "the lockfile branch's floor")
     behaviour = lfm.get("minimumReleaseAgeBehaviour")
@@ -218,7 +244,33 @@ def check_lock_file_maintenance(cfg: dict, floor: int) -> list[str]:
     return checked
 
 
-def check_action_ref_exemption(i: int, rule: dict, names: list) -> None:
+def check_rule_placement(cfg: Config) -> list[str]:
+    """Every packageRule is in the top-level array and writes out its own matchers and floor.
+
+    Renovate appends the packageRules of a manager, update-type or
+    lockFileMaintenance block after the top-level ones, so a rule there that
+    matches overrides every rule checked here. A rule that extends presets
+    takes matchers and a floor from them.
+    """
+    for key, block in cfg.items():
+        if isinstance(block, dict) and "packageRules" in block:
+            raise Rejected(
+                f"{key}.packageRules holds rules outside the top-level "
+                f"packageRules this check reads. Renovate appends a block's "
+                f"packageRules after the top-level ones, so a rule there can undo "
+                f"any floor or exemption checked here."
+            )
+    for i, rule in enumerate(cfg.get("packageRules") or []):
+        if "extends" in rule:
+            raise Rejected(
+                f"packageRules[{i}] extends {rule['extends']!r}, so its matchers "
+                f"and its minimumReleaseAge are whatever those presets hold, and "
+                f"this check reads neither."
+            )
+    return ["every packageRule is top-level and states its own matchers"]
+
+
+def check_action_ref_exemption(i: int, rule: Config, names: list[str]) -> None:
     """A null floor naming an action ref is confined to that ref on this org's host."""
     refs = [n for n in names if n in FIRST_PARTY_ACTION_REFS]
     if not refs:
@@ -241,17 +293,16 @@ def check_action_ref_exemption(i: int, rule: dict, names: list) -> None:
         )
 
 
-def check_package_rules(cfg: dict) -> list[str]:
-    """Rules that change the floor, and the action refs that must end up exempt.
+def check_package_rules(cfg: Config) -> list[str]:
+    """Every rule that changes the floor names packages, and only first-party ones lose it.
 
     A packageRule can override the top-level floor, and a later rule wins. So
-    the floor checked above is only the floor for packages no rule names —
-    asserting it alone would report a floor the config does not actually
-    enforce.
+    the floor check_top_level reads is only the floor for packages no rule
+    names — asserting it alone would report a floor the config does not
+    actually enforce.
     """
     removed = 0
     raised = 0
-    last_for_ref: dict[str, object] = {}
     for i, rule in enumerate(cfg.get("packageRules") or []):
         if "minimumReleaseAgeBehaviour" in rule:
             raise Rejected(
@@ -296,44 +347,170 @@ def check_package_rules(cfg: dict) -> list[str]:
                     f"Renovate would propose what pnpm then refuses to install."
                 )
             raised += 1
-        for name in names:
-            if name in FIRST_PARTY_ACTION_REFS:
-                last_for_ref[name] = value
 
-    for ref in sorted(FIRST_PARTY_ACTION_REFS):
-        if ref not in last_for_ref:
-            raise Rejected(
-                f"no packageRule removes the floor for {ref}. Its digest updates "
-                f"carry no release timestamp, so the floor holds them, and the "
-                f"github-actions group branch they land in, pending for as long as "
-                f"the branch exists."
-            )
-        if last_for_ref[ref] is not None:
-            raise Rejected(
-                f"the last packageRule naming {ref} sets minimumReleaseAge to "
-                f"{last_for_ref[ref]!r}. A later rule wins, so the floor is back on "
-                f"its digest updates and holds the github-actions group branch "
-                f"pending."
-            )
-
-    refs = sorted(FIRST_PARTY_ACTION_REFS)
     return [
         f"{removed} packageRule(s) remove the floor, each naming first-party packages only",
         f"{raised} packageRule(s) set a floor of their own, none below pnpm's",
-        f"the floor is removed for every first-party action ref: {refs}",
     ]
 
 
-def check(cfg: dict) -> list[str]:
+def ref_update(ref: str) -> dict[str, str]:
+    """What an update of a first-party action ref shows the matchers this check reads.
+
+    The github-actions extractor gives a ref with no host the depName
+    owner/repo, and the packageName defaults to the depName.
+    """
+    return {
+        "matchManagers": "github-actions",
+        "matchPackageNames": ref,
+        "matchDepNames": ref,
+    }
+
+
+def exact(pattern: str) -> bool:
+    """Whether Renovate matches pattern only against its own text, ignoring case."""
+    return not pattern.startswith(("/", "!", "#")) and not GLOB_SYNTAX.search(pattern)
+
+
+def may_match(patterns: object, value: str) -> bool:
+    """Whether Renovate could match value against a match* list. False only when it cannot.
+
+    The list matches when some positive entry matches, if it has any, and no
+    negated entry excludes the value.
+    """
+    if not isinstance(patterns, list) or not all(isinstance(p, str) for p in patterns):
+        return True
+
+    def same(pattern: str) -> bool:
+        return exact(pattern) and pattern.lower() == value.lower()
+
+    positive = [p for p in patterns if not p.startswith("!")]
+    if positive and not any(same(p) or not exact(p) for p in positive):
+        return False
+    return not any(same(p[1:]) for p in patterns if p.startswith("!"))
+
+
+def reaches(rule: Config, ref: str) -> bool:
+    """Whether rule could apply to an update of ref: no matcher this check reads rules it out.
+
+    A regex, a glob or a negation can match a name this check cannot predict,
+    and a rule with none of these matchers reaches every dependency its other
+    matchers allow, so each of those counts as reaching the ref.
+    """
+    return all(
+        may_match(rule[key], value)
+        for key, value in ref_update(ref).items()
+        if key in rule
+    )
+
+
+def names_exactly(rule: Config, ref: str) -> bool:
+    """Whether rule applies to every update of ref.
+
+    Each matcher this check reads lists ref, or github-actions, by its exact
+    text, and the rule has no other matcher to narrow it.
+    """
+    facts = ref_update(ref)
+    if {key for key in rule if key.startswith("match")} != set(facts):
+        return False
+    return all(
+        isinstance(rule[key], list)
+        and value in rule[key]
+        and all(isinstance(p, str) and exact(p) for p in rule[key])
+        for key, value in facts.items()
+    )
+
+
+def check_renames(i: int, rule: Config, ref: str) -> None:
+    """No rule renames ref, or gives another dependency its name."""
+    for key in RENAMES:
+        if key not in rule:
+            continue
+        target = rule[key]
+        if reaches(rule, ref):
+            raise Rejected(
+                f"packageRules[{i}] sets {key} and can reach {ref}. Every later "
+                f"rule, and Renovate's second pass over packageRules, then matches "
+                f"the ref by the name this rule sets, while the exemption matches "
+                f"by exact name, so the floor can come back on it."
+            )
+        if (
+            not isinstance(target, str)
+            or "{{" in target
+            or target.lower() == ref.lower()
+        ):
+            raise Rejected(
+                f"packageRules[{i}] sets {key} to {target!r}, which can give "
+                f"another dependency the name {ref}, and the exemption then "
+                f"removes the floor for a dependency nobody reviewed."
+            )
+
+
+def check_action_refs_exempt(cfg: Config) -> list[str]:
+    """Every first-party action ref ends with no floor once every rule here has applied.
+
+    Renovate applies the rules in order and a later rule wins, so the ref is
+    exempt when the last rule that can reach it and sets minimumReleaseAge
+    names it exactly and sets null. A rule that can reach the ref but does not
+    name it exactly cannot be relied on to remove the floor, and can put it
+    back.
+    """
+    rules = cfg.get("packageRules") or []
+    for ref in sorted(FIRST_PARTY_ACTION_REFS):
+        last: tuple[int, object] | None = None
+        for i, rule in enumerate(rules):
+            check_renames(i, rule, ref)
+            if "minimumReleaseAge" not in rule or not reaches(rule, ref):
+                continue
+            value = rule["minimumReleaseAge"]
+            if value is not None or names_exactly(rule, ref):
+                last = (i, value)
+        if last is None:
+            raise Rejected(
+                f"no packageRule removes the floor from every update of {ref}. A "
+                f"rule that does lists it exactly in matchPackageNames and "
+                f"matchDepNames, and github-actions in matchManagers, with no other "
+                f"matcher. Its digest updates carry no release timestamp, so the "
+                f"floor holds them, and the github-actions group branch they land "
+                f"in, pending for as long as the branch exists."
+            )
+        i, value = last
+        if value is not None:
+            raise Rejected(
+                f"packageRules[{i}] can reach {ref} and sets minimumReleaseAge to "
+                f"{value!r}, and no rule after it removes the floor by naming "
+                f"{ref} exactly. A later rule wins, so the floor is back on its "
+                f"digest updates and holds the github-actions group branch "
+                f"pending. A rule that sets a floor after the exemption rules the "
+                f"ref out with an exact matchManagers, matchPackageNames or "
+                f"matchDepNames list that does not name it, or with a negation of "
+                f"its exact name, or moves above the exemption."
+            )
+
+    refs = sorted(FIRST_PARTY_ACTION_REFS)
+    exempt = (
+        f"the last rule that can reach each first-party action ref removes its "
+        f"floor by naming it exactly: {refs}"
+    )
+    return [exempt]
+
+
+def check(cfg: Config) -> list[str]:
     """Returns the list of things checked. Raises Rejected on the first failure."""
     checked, floor = check_top_level(cfg)
     checked += check_security_path(cfg)
     checked += check_lock_file_maintenance(cfg, floor)
+    checked += check_rule_placement(cfg)
     checked += check_package_rules(cfg)
+    checked += check_action_refs_exempt(cfg)
     return checked
 
 
-def variants(cfg: dict) -> tuple[list[tuple[str, dict, str]], list[tuple[str, dict]]]:
+Breaks = list[tuple[str, Config, str]]
+Keeps = list[tuple[str, Config]]
+
+
+def variants(cfg: Config) -> tuple[Breaks, Keeps]:
     """Configs derived from cfg: those the check must reject, and those it must pass.
 
     Each break carries a fragment of the rejection it must produce. A break
@@ -342,30 +519,38 @@ def variants(cfg: dict) -> tuple[list[tuple[str, dict, str]], list[tuple[str, di
     the deletion of the check written for it.
     """
 
-    def copy() -> dict:
-        return json.loads(json.dumps(cfg))
+    def copy() -> Config:
+        d: Config = json.loads(json.dumps(cfg))
+        return d
 
-    def without(key):
+    def without(key: str) -> Config:
         d = copy()
         d.pop(key, None)
         return d
 
-    def with_key(key, value, block=None, present=True):
+    def with_key(
+        key: str, value: object, block: str | None = None, present: bool = True
+    ) -> Config:
         d = copy()
-        target = d if block is None else d[block]
+        target = d if block is None else d.setdefault(block, {})
         if present:
             target[key] = value
         else:
             target.pop(key, None)
         return d
 
-    def with_rule(rule):
+    def with_rule(rule: Config, at: int | None = None) -> Config:
         d = copy()
-        d.setdefault("packageRules", []).append(rule)
+        rules = d.setdefault("packageRules", [])
+        rules.insert(len(rules) if at is None else at, rule)
         return d
 
-    def action_exemption(name, managers=("github-actions",), dep_names=True):
-        rule = {"matchPackageNames": [name], "minimumReleaseAge": None}
+    def action_exemption(
+        name: str,
+        managers: tuple[str, ...] | None = ("github-actions",),
+        dep_names: bool | list[str] = True,
+    ) -> Config:
+        rule: Config = {"matchPackageNames": [name], "minimumReleaseAge": None}
         if managers is not None:
             rule["matchManagers"] = list(managers)
         if dep_names is True:
@@ -374,7 +559,7 @@ def variants(cfg: dict) -> tuple[list[tuple[str, dict, str]], list[tuple[str, di
             rule["matchDepNames"] = list(dep_names)
         return with_rule(rule)
 
-    def without_action_exemption():
+    def without_action_exemption() -> Config:
         d = copy()
         d["packageRules"] = [
             r
@@ -383,16 +568,34 @@ def variants(cfg: dict) -> tuple[list[tuple[str, dict, str]], list[tuple[str, di
         ]
         return d
 
-    def lfm(key, value, present=True):
+    def narrowed_action_exemption() -> Config:
+        d = without_action_exemption()
+        d["packageRules"].append(
+            {
+                "matchManagers": ["github-actions"],
+                "matchPackageNames": ["nanohype/.github"],
+                "matchDepNames": ["nanohype/.github"],
+                "matchUpdateTypes": ["major"],
+                "minimumReleaseAge": None,
+            }
+        )
+        return d
+
+    def lfm(key: str, value: object, present: bool = True) -> Config:
         return with_key(key, value, block="lockFileMaintenance", present=present)
+
+    def later_floor(**matchers: list[str]) -> Config:
+        return with_rule({**matchers, "minimumReleaseAge": "7 days"})
 
     not_first_party = "which is not first-party"
     not_confined = "is not confined to them"
     rule_behaviour = (
         "sets minimumReleaseAgeBehaviour, which is set in lockFileMaintenance"
     )
+    refloored = "can reach nanohype/.github and sets minimumReleaseAge to '7 days'"
+    renamed = "sets overridePackageName and can reach nanohype/.github"
 
-    breaks = [
+    breaks: Breaks = [
         ("no floor at all", without("minimumReleaseAge"), "sets no minimumReleaseAge"),
         (
             "a rule removing the floor for a third-party package",
@@ -522,6 +725,25 @@ def variants(cfg: dict) -> tuple[list[tuple[str, dict, str]], list[tuple[str, di
             rule_behaviour,
         ),
         (
+            "a rule in a manager block, appended after the top-level rules",
+            with_key(
+                "packageRules",
+                [{"matchPackageNames": ["*"], "minimumReleaseAge": "7 days"}],
+                block="github-actions",
+            ),
+            "github-actions.packageRules holds rules outside",
+        ),
+        (
+            "a rule taking its floor from presets",
+            with_rule(
+                {
+                    "matchPackageNames": ["*"],
+                    "extends": ["security:minimumReleaseAgeNpm"],
+                }
+            ),
+            "extends ['security:minimumReleaseAgeNpm']",
+        ),
+        (
             "a rule removing the floor for a lookalike action ref",
             action_exemption("nanohype/.github-evil"),
             not_first_party,
@@ -576,25 +798,79 @@ def variants(cfg: dict) -> tuple[list[tuple[str, dict, str]], list[tuple[str, di
         (
             "the action-ref exemption removed",
             without_action_exemption(),
-            "no packageRule removes the floor for nanohype/.github",
+            "no packageRule removes the floor from every update of nanohype/.github",
         ),
         (
-            "the action-ref exemption overridden by a later rule",
+            "the action-ref exemption overridden by a later rule naming it",
+            later_floor(
+                matchManagers=["github-actions"], matchPackageNames=["nanohype/.github"]
+            ),
+            refloored,
+        ),
+        (
+            "the action-ref exemption overridden by a later rule naming it in other case",
+            later_floor(matchPackageNames=["NanoHype/.GitHub"]),
+            refloored,
+        ),
+        (
+            "the action-ref exemption overridden by a later '*' rule",
+            later_floor(matchPackageNames=["*"]),
+            refloored,
+        ),
+        (
+            "the action-ref exemption overridden by a later glob rule",
+            later_floor(matchManagers=["github-*"], matchPackageNames=["nanohype/*"]),
+            refloored,
+        ),
+        (
+            "the action-ref exemption overridden by a later regex rule",
+            later_floor(matchPackageNames=["/^nanohype\\//"]),
+            refloored,
+        ),
+        (
+            "the action-ref exemption overridden by a later negated rule",
+            later_floor(matchPackageNames=["!lodash"]),
+            refloored,
+        ),
+        (
+            "the action-ref exemption overridden by a later rule keyed on depName",
+            later_floor(matchPackageNames=["/.+/"], matchDepNames=["nanohype/.github"]),
+            refloored,
+        ),
+        (
+            "the action-ref exemption narrowed to some of the ref's updates",
+            narrowed_action_exemption(),
+            "no packageRule removes the floor from every update of nanohype/.github",
+        ),
+        (
+            "the action ref renamed out from under the exemption",
             with_rule(
                 {
-                    "matchManagers": ["github-actions"],
                     "matchPackageNames": ["nanohype/.github"],
-                    "minimumReleaseAge": "3 days",
-                }
+                    "overridePackageName": "nanohype/renamed",
+                },
+                at=0,
             ),
-            "the last packageRule naming nanohype/.github",
+            renamed,
+        ),
+        (
+            "another dependency renamed into the exemption",
+            with_rule(
+                {
+                    "matchPackageNames": ["evil/x"],
+                    "overrideDepName": "nanohype/.github",
+                    "overridePackageName": "nanohype/.github",
+                },
+                at=0,
+            ),
+            "sets overrideDepName to 'nanohype/.github', which can give",
         ),
     ]
 
-    keeps = [
+    keeps: Keeps = [
         (
             "lock file maintenance stating the top-level floor",
-            lfm("minimumReleaseAge", cfg["minimumReleaseAge"]),
+            lfm("minimumReleaseAge", cfg.get("minimumReleaseAge")),
         ),
         (
             "lock file maintenance stating a longer floor",
@@ -605,14 +881,34 @@ def variants(cfg: dict) -> tuple[list[tuple[str, dict, str]], list[tuple[str, di
             with_key("minimumReleaseAgeBehaviour", "timestamp-required"),
         ),
         (
-            "a rule raising the floor for a third-party package",
-            with_rule({"matchPackageNames": ["lodash"], "minimumReleaseAge": "7 days"}),
+            "a later rule raising the floor for a third-party package",
+            later_floor(matchPackageNames=["lodash"]),
+        ),
+        (
+            "a later rule raising the floor by pattern for another manager",
+            later_floor(matchManagers=["npm"], matchPackageNames=["/^@aws-sdk\\//"]),
+        ),
+        (
+            "a later '*' rule that excludes the action ref by name",
+            later_floor(matchPackageNames=["*", "!nanohype/.github"]),
+        ),
+        (
+            "a '*' rule placed before the action-ref exemption",
+            with_rule(
+                {"matchPackageNames": ["*"], "minimumReleaseAge": "7 days"}, at=0
+            ),
+        ),
+        (
+            "a rename that cannot reach the action ref",
+            with_rule(
+                {"matchPackageNames": ["evil/x"], "overrideDepName": "evil/renamed"}
+            ),
         ),
     ]
     return breaks, keeps
 
 
-def outcome(cfg: dict) -> tuple[str, str]:
+def outcome(cfg: Config) -> tuple[str, str]:
     """('rejected' | 'passed' | 'raised', the message that came with it).
 
     A lookup on a key or block the break removed fails with one of the errors
@@ -628,7 +924,7 @@ def outcome(cfg: dict) -> tuple[str, str]:
     return "passed", ""
 
 
-def self_test(cfg: dict) -> int:
+def self_test(cfg: Config) -> int:
     """Break the config every way the checks claim to catch. Each must be rejected.
 
     The valid variants differ from the shipped config in ways the checks allow,
@@ -667,7 +963,7 @@ def self_test(cfg: dict) -> int:
 
 
 def main() -> int:
-    cfg = json.loads((ROOT / "default.json").read_text())
+    cfg: Config = json.loads((ROOT / "default.json").read_text())
     if "--self-test" in sys.argv:
         return self_test(cfg)
     try:
