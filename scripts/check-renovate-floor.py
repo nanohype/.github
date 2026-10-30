@@ -250,7 +250,7 @@ def check_rule_placement(cfg: Config) -> list[str]:
     Renovate appends the packageRules of a manager, update-type or
     lockFileMaintenance block after the top-level ones, so a rule there that
     matches overrides every rule checked here. A rule that extends presets
-    takes matchers and a floor from them.
+    can take its matchers and its floor from them.
     """
     for key, block in cfg.items():
         if isinstance(block, dict) and "packageRules" in block:
