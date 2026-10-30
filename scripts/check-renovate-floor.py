@@ -15,12 +15,14 @@ next, on a pull request that changed nothing related.
 
 Renovate's floor must therefore be >= pnpm's. That is what this asserts.
 
-It also asserts where the floor is allowed to differ. The security path has
-none, so a CVE fix is proposed the moment it exists. Lock file maintenance keeps
-it, and passes its stability check without a release timestamp, because a
-regenerated lockfile carries none and Renovate hands the floor to the tools that
-take one during regeneration, npm among them. Only a packageRule naming
-first-party packages removes it.
+It also asserts where the floor may differ. The security path has none, so a
+CVE fix is proposed the moment it exists. Lock file maintenance keeps it and
+passes its stability check without a release timestamp, because a regenerated
+lockfile has none and Renovate passes the floor to the tools that take one while
+regenerating. A top-level packageRule naming first-party packages removes it,
+and nothing else this file states can: each floor setting is allowed only where
+these checks read it. The presets in the top-level extends are resolved by
+whichever Renovate runs the config, and are outside this check.
 
 Run with --self-test to break the inputs and confirm each break is rejected. A
 gate that has never been seen to fail is not known to be a gate.
@@ -32,9 +34,13 @@ import json
 import pathlib
 import re
 import sys
+from collections.abc import Iterator
 from typing import Any
 
 Config = dict[str, Any]
+
+# Keys and indexes from the config root down to one object in it.
+Path = tuple[str | int, ...]
 
 # pnpm 11's default `minimumReleaseAge`, in minutes. If pnpm's default moves, or
 # a repo sets its own lower floor, this constant is the thing to revisit — the
@@ -57,35 +63,41 @@ FIRST_PARTY_SCOPES = {"/^@shuttering//"}
 
 # Action refs that skip the floor, as they appear in matchPackageNames.
 #
-# The pnpm pairing above is with pnpm install, and pnpm install never reads an
-# action ref, so an entry here has no install-time half. pnpm outdated and pnpm
-# update read action refs only when --include-github-actions or
-# update.githubActions opts in, and hold them to minimumReleaseAge in pnpm 11
-# from 11.28.0 and in pnpm 12 from 12.7.0, matching minimumReleaseAgeExclude
-# against the action and repository names. A consumer that updates actions that
-# way lists the same name there for the same exemption.
-#
-# What an entry here commits to is confinement. The exempting rule names action
-# refs and nothing else, matches only the github-actions manager, and matches
-# the same names as depNames. The github-actions extractor gives a ref with an
-# explicit host, such as https://gitea.example.com/nanohype/.github/..., the
-# packageName nanohype/.github and a depName that carries the host, so only the
-# depName tells the org's own repository from a namesake on another server. A
-# ref that spells out https://github.com/ gets a host-qualified depName too, and
-# keeps the floor.
+# pnpm install never reads an action ref, so unlike a scope above, an entry here
+# has no install-time half. What it commits to is confinement: the exempting rule
+# names action refs and nothing else, matches only the github-actions manager,
+# and matches the same names as depNames. The github-actions extractor gives a
+# ref with an explicit host, github.com included, the packageName owner/repo and
+# a depName that carries the host, so only the depName tells this org's
+# repository from a namesake on another server, and a first-party ref is written
+# without a host.
 #
 # Entries are exact names, so an exemption covers the repository that was
-# reviewed and nothing else. A pattern widens it to names nobody reviewed:
-# "/\/\.github$/" also matches "evil/.github", which another owner controls.
+# reviewed and nothing else; a pattern such as "/\/\.github$/" would also match
+# "evil/.github".
 #
 # Every entry must also be exempt in fact (check_action_refs_exempt). A digest
-# update for a branch ref carries no release timestamp, so under
-# timestamp-required the floor holds it pending indefinitely, and the
-# github-actions group branch it lands in with it. Renovate matches names as
-# case-insensitive globs and as regexes, so a later rule naming the ref is not
-# the only one that can put the floor back: "*", "nanohype/*", "/^nanohype\//" and
-# "!lodash" all match it too.
+# update for a branch ref has no release timestamp, so under timestamp-required
+# the floor holds it, and the github-actions group branch it lands in, pending
+# for as long as the branch exists. Renovate matches names as case-insensitive
+# globs and as regexes, so "*", "nanohype/*", "/^nanohype\//" and "!lodash" put
+# the floor back from a later rule as surely as the ref's own name does.
 FIRST_PARTY_ACTION_REFS = {"nanohype/.github"}
+
+# Where each floor setting may appear below the top level. packageRules[] stands
+# for any top-level packageRule. Renovate merges manager blocks, update-type
+# blocks, force and the blocks nested in them into the updates they reach, so a
+# floor setting in a block no check here reads still changes the floor. Rather
+# than list the blocks Renovate merges, check_placement allows each setting only
+# where it is read, so a block this script names nowhere still fails.
+FLOOR_PLACES = {
+    "minimumReleaseAge": (
+        "vulnerabilityAlerts",
+        "lockFileMaintenance",
+        "packageRules[]",
+    ),
+    "minimumReleaseAgeBehaviour": ("lockFileMaintenance",),
+}
 
 # Renovate reads a match* list entry wrapped in slashes as a regex, one starting
 # with "!" as a negation, and anything else as a minimatch glob that ignores case,
@@ -161,9 +173,9 @@ def check_top_level(cfg: Config) -> tuple[list[str], int]:
 
     # timestamp-optional lets an update Renovate cannot date pass the floor
     # unchecked. Lock file maintenance is the one undated update this preset lets
-    # through, because Renovate hands its floor to the tools that regenerate the
+    # through, because Renovate passes its floor to the tools that regenerate the
     # lockfile, and its block sets the behaviour for it alone
-    # (check_lock_file_maintenance).
+    # (check_lock_file_maintenance, check_placement).
     behaviour = cfg.get("minimumReleaseAgeBehaviour", "timestamp-required")
     if behaviour != "timestamp-required":
         raise Rejected(
@@ -198,15 +210,15 @@ def check_lock_file_maintenance(cfg: Config, floor: int) -> list[str]:
     release, so it never carries a release timestamp. Under timestamp-required,
     Renovate's default, a floor on an undated update keeps renovate/stability-days
     pending forever; timestamp-optional lets it pass. The floor itself stays,
-    because Renovate hands it to the tools that take one during regeneration:
+    because Renovate passes it to the tools that take one while regenerating:
     npm runs with --before, and Poetry with POETRY_SOLVER_MIN_RELEASE_AGE. A null
-    floor here regenerates every npm lockfile with no floor unless the
-    consumer's .npmrc sets one of its own.
+    floor here regenerates those lockfiles with none.
 
     No packageRule can take the floor off this branch: every rule that sets
     minimumReleaseAge must name packages, and a lock file maintenance update
-    carries no package name to match. No packageRule can set the behaviour
-    either. check_rule_placement and check_package_rules enforce both.
+    carries no package name to match. Neither a packageRule nor any block but
+    this one can set the behaviour. check_placement and check_package_rules
+    enforce both.
     """
     lfm = stated_block(cfg, "lockFileMaintenance", "the lockfile branch's floor")
     behaviour = lfm.get("minimumReleaseAgeBehaviour")
@@ -226,7 +238,7 @@ def check_lock_file_maintenance(cfg: Config, floor: int) -> list[str]:
     value = lfm["minimumReleaseAge"]
     if value is None:
         raise Rejected(
-            "lockFileMaintenance.minimumReleaseAge is null. Renovate hands the "
+            "lockFileMaintenance.minimumReleaseAge is null. Renovate passes the "
             "floor to the tools that regenerate the lockfile, npm's --before among "
             "them, so a null floor regenerates the whole tree with none."
         )
@@ -244,30 +256,69 @@ def check_lock_file_maintenance(cfg: Config, floor: int) -> list[str]:
     return checked
 
 
-def check_rule_placement(cfg: Config) -> list[str]:
-    """Every packageRule is in the top-level array and writes out its own matchers and floor.
+def settings(node: object, path: Path = ()) -> Iterator[tuple[Path, str, object]]:
+    """Every key at every depth of node, with the path to the object that holds it."""
+    if isinstance(node, dict):
+        for key, value in node.items():
+            yield path, key, value
+            yield from settings(value, (*path, key))
+    elif isinstance(node, list):
+        for i, item in enumerate(node):
+            yield from settings(item, (*path, i))
 
-    Renovate appends the packageRules of a manager, update-type or
-    lockFileMaintenance block after the top-level ones, so a rule there that
-    matches overrides every rule checked here. A rule that extends presets
-    can take its matchers and its floor from them.
+
+def where(path: Path) -> str:
+    """path as text, such as npm.major or packageRules[3]."""
+    text = ""
+    for part in path:
+        if isinstance(part, int):
+            text += f"[{part}]"
+        else:
+            text += f".{part}" if text else part
+    return text
+
+
+def place(path: Path) -> str:
+    """where(path), with the index of a top-level packageRule written as []."""
+    if len(path) == 2 and path[0] == "packageRules" and isinstance(path[1], int):
+        return "packageRules[]"
+    return where(path)
+
+
+def check_placement(cfg: Config) -> list[str]:
+    """Rules, presets and floor settings sit only where these checks read them.
+
+    Renovate merges a block into the updates the block reaches, packageRules
+    and all, and resolves extends inside nested blocks and rules, so below the
+    top level any of them can undo a floor or an exemption checked here.
     """
-    for key, block in cfg.items():
-        if isinstance(block, dict) and "packageRules" in block:
+    for path, key, value in settings(cfg):
+        if not path:
+            continue
+        if key == "packageRules":
             raise Rejected(
-                f"{key}.packageRules holds rules outside the top-level "
-                f"packageRules this check reads. Renovate appends a block's "
-                f"packageRules after the top-level ones, so a rule there can undo "
-                f"any floor or exemption checked here."
+                f"{where((*path, key))} holds rules outside the top-level "
+                f"packageRules this check reads. Renovate merges a block's "
+                f"packageRules into the updates the block reaches, so a rule there "
+                f"can undo any floor or exemption checked here."
             )
-    for i, rule in enumerate(cfg.get("packageRules") or []):
-        if "extends" in rule:
+        if key == "extends":
             raise Rejected(
-                f"packageRules[{i}] extends {rule['extends']!r}, so its matchers "
-                f"and its minimumReleaseAge are whatever those presets hold, and "
-                f"this check reads neither."
+                f"{where(path)} extends {value!r}, so it takes settings from "
+                f"presets this check does not read, and a preset can set a floor "
+                f"or carry a rule that undoes one."
             )
-    return ["every packageRule is top-level and states its own matchers"]
+        places = FLOOR_PLACES.get(key)
+        if places is not None and place(path) not in places:
+            raise Rejected(
+                f"{where(path)} sets {key}, which this check reads only at the top "
+                f"level and in {', '.join(places)}. A setting in any other block "
+                f"or rule applies to every update that block or rule reaches, and "
+                f"changes the floor there with nothing here reading it."
+            )
+    return [
+        "every packageRule, preset and floor setting sits where these checks read it"
+    ]
 
 
 def check_action_ref_exemption(i: int, rule: Config, names: list[str]) -> None:
@@ -304,14 +355,6 @@ def check_package_rules(cfg: Config) -> list[str]:
     removed = 0
     raised = 0
     for i, rule in enumerate(cfg.get("packageRules") or []):
-        if "minimumReleaseAgeBehaviour" in rule:
-            raise Rejected(
-                f"packageRules[{i}] sets minimumReleaseAgeBehaviour, which is set "
-                f"in lockFileMaintenance and nowhere else. timestamp-optional on a "
-                f"rule lets every update it matches pass the floor undated, and "
-                f"packageRules apply after the lockFileMaintenance block, so a rule "
-                f"matching lock file maintenance replaces what that block sets."
-            )
         if "minimumReleaseAge" not in rule:
             continue
         value = rule["minimumReleaseAge"]
@@ -500,7 +543,7 @@ def check(cfg: Config) -> list[str]:
     checked, floor = check_top_level(cfg)
     checked += check_security_path(cfg)
     checked += check_lock_file_maintenance(cfg, floor)
-    checked += check_rule_placement(cfg)
+    checked += check_placement(cfg)
     checked += check_package_rules(cfg)
     checked += check_action_refs_exempt(cfg)
     return checked
@@ -587,11 +630,24 @@ def variants(cfg: Config) -> tuple[Breaks, Keeps]:
     def later_floor(**matchers: list[str]) -> Config:
         return with_rule({**matchers, "minimumReleaseAge": "7 days"})
 
+    def with_custom_manager(entry: Config) -> tuple[Config, int]:
+        d = copy()
+        managers = d.setdefault("customManagers", [])
+        managers.append(entry)
+        return d, len(managers) - 1
+
+    def misplaced(at: str, key: str) -> str:
+        return f"{at} sets {key}, which this check reads only at the top level"
+
+    floor_in_custom_manager, custom_index = with_custom_manager(
+        {"customType": "regex", "minimumReleaseAge": None}
+    )
+    # Where with_rule puts a rule when it is given no index.
+    appended = f"packageRules[{len(cfg.get('packageRules') or [])}]"
+
     not_first_party = "which is not first-party"
     not_confined = "is not confined to them"
-    rule_behaviour = (
-        "sets minimumReleaseAgeBehaviour, which is set in lockFileMaintenance"
-    )
+    rule_behaviour = misplaced(appended, "minimumReleaseAgeBehaviour")
     refloored = "can reach nanohype/.github and sets minimumReleaseAge to '7 days'"
     renamed = "sets overridePackageName and can reach nanohype/.github"
 
@@ -725,6 +781,59 @@ def variants(cfg: Config) -> tuple[Breaks, Keeps]:
             rule_behaviour,
         ),
         (
+            "a manager block lifting the floor",
+            with_key("minimumReleaseAge", None, block="npm"),
+            misplaced("npm", "minimumReleaseAge"),
+        ),
+        (
+            "a manager block lowering the floor below pnpm's",
+            with_key("minimumReleaseAge", "1 hour", block="github-actions"),
+            misplaced("github-actions", "minimumReleaseAge"),
+        ),
+        (
+            "an update-type block lifting the floor",
+            with_key("minimumReleaseAge", None, block="major"),
+            misplaced("major", "minimumReleaseAge"),
+        ),
+        (
+            "an update-type block letting undated updates through",
+            with_key(
+                "minimumReleaseAgeBehaviour", "timestamp-optional", block="digest"
+            ),
+            misplaced("digest", "minimumReleaseAgeBehaviour"),
+        ),
+        (
+            "force, a block no check here names, lifting the floor",
+            with_key("minimumReleaseAge", None, block="force"),
+            misplaced("force", "minimumReleaseAge"),
+        ),
+        (
+            "a lockFileMaintenance block nested in a manager block",
+            with_key("lockFileMaintenance", {"minimumReleaseAge": None}, block="npm"),
+            misplaced("npm.lockFileMaintenance", "minimumReleaseAge"),
+        ),
+        (
+            "an update-type block nested in a packageRule",
+            with_rule(
+                {"matchPackageNames": ["lodash"], "major": {"minimumReleaseAge": None}}
+            ),
+            misplaced(f"{appended}.major", "minimumReleaseAge"),
+        ),
+        (
+            "a floor in a custom manager",
+            floor_in_custom_manager,
+            misplaced(f"customManagers[{custom_index}]", "minimumReleaseAge"),
+        ),
+        (
+            "minimumReleaseAgeBehaviour on the security path",
+            with_key(
+                "minimumReleaseAgeBehaviour",
+                "timestamp-optional",
+                block="vulnerabilityAlerts",
+            ),
+            misplaced("vulnerabilityAlerts", "minimumReleaseAgeBehaviour"),
+        ),
+        (
             "a rule in a manager block, appended after the top-level rules",
             with_key(
                 "packageRules",
@@ -734,6 +843,15 @@ def variants(cfg: Config) -> tuple[Breaks, Keeps]:
             "github-actions.packageRules holds rules outside",
         ),
         (
+            "a rule in an update-type block nested in a manager block",
+            with_key(
+                "major",
+                {"packageRules": [{"matchPackageNames": ["*"], "enabled": False}]},
+                block="npm",
+            ),
+            "npm.major.packageRules holds rules outside",
+        ),
+        (
             "a rule taking its floor from presets",
             with_rule(
                 {
@@ -741,7 +859,12 @@ def variants(cfg: Config) -> tuple[Breaks, Keeps]:
                     "extends": ["security:minimumReleaseAgeNpm"],
                 }
             ),
-            "extends ['security:minimumReleaseAgeNpm']",
+            f"{appended} extends ['security:minimumReleaseAgeNpm']",
+        ),
+        (
+            "a manager block taking settings from presets",
+            with_key("extends", ["security:minimumReleaseAgeNpm"], block="npm"),
+            "npm extends ['security:minimumReleaseAgeNpm']",
         ),
         (
             "a rule removing the floor for a lookalike action ref",
@@ -879,6 +1002,14 @@ def variants(cfg: Config) -> tuple[Breaks, Keeps]:
         (
             "timestamp-required stated at the top level",
             with_key("minimumReleaseAgeBehaviour", "timestamp-required"),
+        ),
+        (
+            "a manager block that leaves the floor alone",
+            with_key("rangeStrategy", "pin", block="npm"),
+        ),
+        (
+            "an update-type block that leaves the floor alone",
+            with_key("labels", ["deps", "digest"], block="digest"),
         ),
         (
             "a later rule raising the floor for a third-party package",
