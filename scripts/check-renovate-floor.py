@@ -15,6 +15,10 @@ next, on a pull request that changed nothing related.
 
 Renovate's floor must therefore be >= pnpm's. That is what this asserts.
 
+It also asserts the two places the floor must not reach: the security path, so a
+CVE fix is proposed the moment it exists, and lock file maintenance, whose
+regenerated lockfile carries nothing Renovate can date.
+
 Run with --self-test to break the inputs and confirm each break is rejected. A
 gate that has never been seen to fail is not known to be a gate.
 """
@@ -44,6 +48,20 @@ PNPM_FLOOR_MINUTES = 1440
 # verify that — the pnpm settings live in the consumers — which is exactly why
 # the list is short, explicit, and checked rather than left to convention.
 FIRST_PARTY_SCOPES = {"/^@shuttering//"}
+
+# Action refs allowed to skip the floor, as they appear in matchPackageNames.
+#
+# The pnpm pairing above is a commitment about registry scopes only. An action
+# ref has no package-manager side: the Actions runner resolves it, and neither
+# pnpm nor npm reads it, so there is no second half to add in the consumers.
+# What an entry here commits to is confinement: the exempting rule names action
+# refs and nothing else, and matches only the github-actions manager, because
+# that is the only manager whose dependencies this reasoning covers.
+#
+# Entries are exact names, so an exemption covers the repository that was
+# reviewed and nothing else. A pattern widens it to names nobody reviewed:
+# "/\/\.github$/" also matches "evil/.github", which another owner controls.
+FIRST_PARTY_ACTION_REFS = {"nanohype/.github"}
 
 # Renovate accepts duration strings such as "3 days" / "6 months" / "1 year".
 UNITS = {
@@ -113,6 +131,35 @@ def check(cfg: dict) -> list[str]:
         )
     checked.append("vulnerabilityAlerts.minimumReleaseAge is explicitly null")
 
+    # Lock file maintenance has the package manager resolve the whole tree
+    # again, so nothing on that branch carries a release timestamp Renovate can
+    # age. Under minimumReleaseAgeBehaviour=timestamp-required, Renovate's
+    # default, a non-null floor here holds the branch's renovate/stability-days
+    # check pending forever, and an implicit one inherits the top-level floor
+    # and does the same. During regeneration the floor is the package manager's.
+    #
+    # No packageRule in this preset can put a floor back on that branch: every
+    # rule that sets minimumReleaseAge must name packages (checked below), and a
+    # lock file maintenance update carries no package name to match.
+    lfm = cfg.get("lockFileMaintenance")
+    if not isinstance(lfm, dict):
+        raise Rejected("lockFileMaintenance is missing, so its release-age floor is unstated.")
+    if "minimumReleaseAge" not in lfm:
+        raise Rejected(
+            "lockFileMaintenance does not state minimumReleaseAge, so it inherits "
+            "the top-level floor. Renovate cannot date what a regenerated lockfile "
+            "resolves, and under minimumReleaseAgeBehaviour=timestamp-required the "
+            "lockfile branch would stay pending forever."
+        )
+    if lfm["minimumReleaseAge"] is not None:
+        raise Rejected(
+            f"lockFileMaintenance.minimumReleaseAge is {lfm['minimumReleaseAge']!r}, "
+            f"not null. Renovate cannot date what a regenerated lockfile resolves, "
+            f"so under minimumReleaseAgeBehaviour=timestamp-required any floor "
+            f"holds the lockfile branch pending forever."
+        )
+    checked.append("lockFileMaintenance.minimumReleaseAge is explicitly null")
+
     # A packageRule can override the top-level floor, and a later rule wins. So
     # the floor checked above is only the floor for packages no rule names —
     # asserting it alone would report a floor the config does not actually
@@ -130,7 +177,9 @@ def check(cfg: dict) -> list[str]:
                 f"matchPackageNames, so it applies to every package and silently "
                 f"replaces the top-level floor."
             )
-        unlisted = [n for n in names if n not in FIRST_PARTY_SCOPES]
+        unlisted = [
+            n for n in names if n not in FIRST_PARTY_SCOPES | FIRST_PARTY_ACTION_REFS
+        ]
         if value is None:
             if unlisted:
                 raise Rejected(
@@ -138,6 +187,19 @@ def check(cfg: dict) -> list[str]:
                     f"not first-party. The floor is what keeps this org from being "
                     f"the first consumer of a compromised publish, and only a "
                     f"package this org publishes itself is outside that risk."
+                )
+            refs = [n for n in names if n in FIRST_PARTY_ACTION_REFS]
+            confined = len(refs) == len(names) and rule.get("matchManagers") == [
+                "github-actions"
+            ]
+            if refs and not confined:
+                raise Rejected(
+                    f"packageRules[{i}] removes the floor for action refs {refs} "
+                    f"but is not confined to them: an action-ref exemption names "
+                    f"only action refs and sets matchManagers to "
+                    f"[\"github-actions\"]. The exemption holds because an action "
+                    f"ref has no package-manager side, which is true of nothing "
+                    f"else the rule could match."
                 )
         else:
             minutes_rule = parse_duration(value)
@@ -149,7 +211,8 @@ def check(cfg: dict) -> list[str]:
                 )
         exempting += 1
     checked.append(
-        f"{exempting} packageRule(s) override the floor, all for first-party scopes"
+        f"{exempting} packageRule(s) override the floor, all for first-party "
+        f"scopes or action refs"
     )
 
     return checked
@@ -175,10 +238,24 @@ def self_test(cfg: dict) -> int:
             d["vulnerabilityAlerts"].pop("minimumReleaseAge", None)
         return d
 
+    def with_lfm(value, present=True):
+        d = json.loads(json.dumps(cfg))
+        if present:
+            d["lockFileMaintenance"]["minimumReleaseAge"] = value
+        else:
+            d["lockFileMaintenance"].pop("minimumReleaseAge", None)
+        return d
+
     def with_rule(rule):
         d = json.loads(json.dumps(cfg))
         d.setdefault("packageRules", []).append(rule)
         return d
+
+    def action_exemption(name, managers=("github-actions",)):
+        rule = {"matchPackageNames": [name], "minimumReleaseAge": None}
+        if managers is not None:
+            rule["matchManagers"] = list(managers)
+        return with_rule(rule)
 
     breaks = [
         ("no floor at all", without("minimumReleaseAge")),
@@ -206,6 +283,39 @@ def self_test(cfg: dict) -> int:
         ("security path delayed", with_va("3 days")),
         ("security path left implicit", with_va(None, present=False)),
         ("vulnerabilityAlerts removed", without("vulnerabilityAlerts")),
+        ("lock file maintenance held by a floor", with_lfm("3 days")),
+        ("lock file maintenance floor left implicit", with_lfm(None, present=False)),
+        ("lockFileMaintenance removed", without("lockFileMaintenance")),
+        (
+            "a rule removing the floor for a lookalike action ref",
+            action_exemption("nanohype/.github-evil"),
+        ),
+        (
+            "a rule removing the floor for another owner's .github",
+            action_exemption("evil/.github"),
+        ),
+        (
+            "a pattern standing in for the exact action ref",
+            action_exemption("/^nanohype\\/\\.github/"),
+        ),
+        (
+            "an action-ref exemption not confined to github-actions",
+            action_exemption("nanohype/.github", managers=None),
+        ),
+        (
+            "an action-ref exemption confined to the wrong manager",
+            action_exemption("nanohype/.github", managers=("npm",)),
+        ),
+        (
+            "an action-ref exemption that also names a registry scope",
+            with_rule(
+                {
+                    "matchManagers": ["github-actions"],
+                    "matchPackageNames": ["nanohype/.github", "/^@shuttering//"],
+                    "minimumReleaseAge": None,
+                }
+            ),
+        ),
     ]
 
     failures = []
