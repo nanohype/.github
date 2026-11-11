@@ -21,3 +21,17 @@ Organization-level GitHub configuration for nanohype.
   truth). Labels are per-repo on GitHub, so unlike the templates they don't
   inherit; `.github/workflows/sync-labels.yml` applies this file to every repo
   on demand. Repos add a thin, namespaced (`key:value`) domain layer on top.
+
+## Versioning
+
+The actions under `actions/` are released together by tag. Consumers pin the
+commit and name the major tag beside it, so Renovate can track it:
+
+```yaml
+- uses: nanohype/.github/actions/merge-gate@<sha> # v1
+```
+
+Each release gets an immutable tag (`v1.0.0`, `v1.1.0`, …), and the floating
+major tag `v1` moves forward to it on every compatible release. A breaking
+change to either action's inputs or behaviour goes out as `v2`, never under
+`v1`.
