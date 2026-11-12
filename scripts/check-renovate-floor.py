@@ -19,7 +19,10 @@ It also asserts where the floor may differ. The security path has none, so a
 CVE fix is proposed the moment it exists. Lock file maintenance keeps it and
 passes its stability check without a release timestamp, because a regenerated
 lockfile has none and Renovate passes the floor to the tools that take one while
-regenerating. A top-level packageRule naming first-party packages removes it,
+regenerating. Digest updates keep it and pass the same way, because a digest
+update often has no release timestamp and a group branch holding one would
+otherwise stay pending forever; one top-level packageRule says so, for digest
+updates alone. A top-level packageRule naming first-party packages removes it,
 and nothing else this file states can: each floor setting is allowed only where
 these checks read it. The presets in the top-level extends are resolved by
 whichever Renovate runs the config, and are outside this check.
@@ -96,7 +99,7 @@ FLOOR_PLACES = {
         "lockFileMaintenance",
         "packageRules[]",
     ),
-    "minimumReleaseAgeBehaviour": ("lockFileMaintenance",),
+    "minimumReleaseAgeBehaviour": ("lockFileMaintenance", "packageRules[]"),
 }
 
 # Renovate reads a match* list entry wrapped in slashes as a regex, one starting
@@ -172,10 +175,12 @@ def check_top_level(cfg: Config) -> tuple[list[str], int]:
     checked.append(f"{minutes} >= pnpm's floor of {PNPM_FLOOR_MINUTES} minutes")
 
     # timestamp-optional lets an update Renovate cannot date pass the floor
-    # unchecked. Lock file maintenance is the one undated update this preset lets
-    # through, because Renovate passes its floor to the tools that regenerate the
-    # lockfile, and its block sets the behaviour for it alone
-    # (check_lock_file_maintenance, check_placement).
+    # unchecked. This preset lets two kinds of undated update through, each set
+    # where it reaches that kind alone: lock file maintenance in its own block,
+    # because Renovate passes its floor to the tools that regenerate the
+    # lockfile (check_lock_file_maintenance), and digest updates in one
+    # packageRule, because a group branch holding one never passes
+    # (check_digest_behaviour).
     behaviour = cfg.get("minimumReleaseAgeBehaviour", "timestamp-required")
     if behaviour != "timestamp-required":
         raise Rejected(
@@ -216,9 +221,10 @@ def check_lock_file_maintenance(cfg: Config, floor: int) -> list[str]:
 
     No packageRule can take the floor off this branch: every rule that sets
     minimumReleaseAge must name packages, and a lock file maintenance update
-    carries no package name to match. Neither a packageRule nor any block but
-    this one can set the behaviour. check_placement and check_package_rules
-    enforce both.
+    carries no package name to match. No block but this one can set the
+    behaviour, and a packageRule can set it only to timestamp-optional and only
+    for digest updates. check_placement, check_package_rules and
+    check_digest_behaviour enforce all three.
     """
     lfm = stated_block(cfg, "lockFileMaintenance", "the lockfile branch's floor")
     behaviour = lfm.get("minimumReleaseAgeBehaviour")
@@ -318,6 +324,71 @@ def check_placement(cfg: Config) -> list[str]:
             )
     return [
         "every packageRule, preset and floor setting sits where these checks read it"
+    ]
+
+
+DIGEST = ["digest"]
+
+
+def check_digest_behaviour(cfg: Config) -> list[str]:
+    """Digest updates pass the floor undated, and no other update a rule reaches does.
+
+    A digest update moves a pin to a commit or image digest rather than to a
+    release, so it often has no release timestamp. Under timestamp-required a
+    floor on it keeps renovate/stability-days pending forever, and a group
+    branch holding one never passes, however old its other updates are. So one
+    rule sets timestamp-optional for every digest update.
+
+    A rule that sets the behaviour sets timestamp-optional, matches by
+    matchUpdateTypes ["digest"] exactly, and leaves minimumReleaseAge alone. A
+    wider matchUpdateTypes lets dated update types through undated; a missing
+    one lets every update through; timestamp-required holds an undated branch
+    pending again; and a floor in the same rule would land wherever the rule
+    sits and could replace the first-party exemptions.
+    """
+    whole = 0
+    for i, rule in enumerate(cfg.get("packageRules") or []):
+        if "minimumReleaseAgeBehaviour" not in rule:
+            continue
+        value = rule["minimumReleaseAgeBehaviour"]
+        if value != "timestamp-optional":
+            raise Rejected(
+                f"packageRules[{i}] sets minimumReleaseAgeBehaviour to {value!r}. "
+                f"A packageRule may set it only to 'timestamp-optional', for digest "
+                f"updates: timestamp-required is already the top-level setting, and "
+                f"stated in a rule it holds whatever undated update the rule "
+                f"reaches pending, lock file maintenance and digests included."
+            )
+        if rule.get("matchUpdateTypes") != DIGEST:
+            raise Rejected(
+                f"packageRules[{i}] sets minimumReleaseAgeBehaviour with "
+                f"matchUpdateTypes {rule.get('matchUpdateTypes')!r}, not "
+                f"{DIGEST!r}. Digest updates are the only ones this preset lets "
+                f"through the floor undated; any other update type a rule reaches "
+                f"would pass the floor whenever Renovate cannot date it."
+            )
+        if "minimumReleaseAge" in rule:
+            raise Rejected(
+                f"packageRules[{i}] sets minimumReleaseAgeBehaviour and "
+                f"minimumReleaseAge together. The digest rule changes only how an "
+                f"undated digest meets the floor; a floor in it applies to every "
+                f"digest update from wherever the rule sits, and can replace the "
+                f"first-party exemptions after it."
+            )
+        if not [k for k in rule if k.startswith("match") and k != "matchUpdateTypes"]:
+            whole += 1
+    if not whole:
+        raise Rejected(
+            "no packageRule sets minimumReleaseAgeBehaviour to timestamp-optional "
+            "for every digest update. A digest update often has no release "
+            "timestamp, so under timestamp-required the floor holds it, and every "
+            "group branch it lands in, pending forever."
+        )
+    return [
+        (
+            "every digest update meets the floor timestamp-optional, and a rule "
+            "sets the behaviour for digest updates only"
+        )
     ]
 
 
@@ -545,6 +616,7 @@ def check(cfg: Config) -> list[str]:
     checked += check_lock_file_maintenance(cfg, floor)
     checked += check_placement(cfg)
     checked += check_package_rules(cfg)
+    checked += check_digest_behaviour(cfg)
     checked += check_action_refs_exempt(cfg)
     return checked
 
@@ -624,6 +696,26 @@ def variants(cfg: Config) -> tuple[Breaks, Keeps]:
         )
         return d
 
+    def without_digest_rule() -> Config:
+        d = copy()
+        d["packageRules"] = [
+            r
+            for r in d.get("packageRules") or []
+            if "minimumReleaseAgeBehaviour" not in r
+        ]
+        return d
+
+    def narrowed_digest_rule() -> Config:
+        d = without_digest_rule()
+        d["packageRules"].append(
+            {
+                "matchManagers": ["github-actions"],
+                "matchUpdateTypes": ["digest"],
+                "minimumReleaseAgeBehaviour": "timestamp-optional",
+            }
+        )
+        return d
+
     def lfm(key: str, value: object, present: bool = True) -> Config:
         return with_key(key, value, block="lockFileMaintenance", present=present)
 
@@ -647,7 +739,10 @@ def variants(cfg: Config) -> tuple[Breaks, Keeps]:
 
     not_first_party = "which is not first-party"
     not_confined = "is not confined to them"
-    rule_behaviour = misplaced(appended, "minimumReleaseAgeBehaviour")
+    not_digest_only = "sets minimumReleaseAgeBehaviour with matchUpdateTypes"
+    no_digest_rule = (
+        "no packageRule sets minimumReleaseAgeBehaviour to timestamp-optional"
+    )
     refloored = "can reach nanohype/.github and sets minimumReleaseAge to '7 days'"
     renamed = "sets overridePackageName and can reach nanohype/.github"
 
@@ -768,7 +863,7 @@ def variants(cfg: Config) -> tuple[Breaks, Keeps]:
                     "minimumReleaseAgeBehaviour": "timestamp-optional",
                 }
             ),
-            rule_behaviour,
+            not_digest_only,
         ),
         (
             "a rule that holds lock file maintenance pending",
@@ -778,7 +873,54 @@ def variants(cfg: Config) -> tuple[Breaks, Keeps]:
                     "minimumReleaseAgeBehaviour": "timestamp-required",
                 }
             ),
-            rule_behaviour,
+            f"{appended} sets minimumReleaseAgeBehaviour to 'timestamp-required'",
+        ),
+        (
+            "a later rule holding digest updates pending again",
+            with_rule(
+                {
+                    "matchUpdateTypes": ["digest"],
+                    "minimumReleaseAgeBehaviour": "timestamp-required",
+                }
+            ),
+            f"{appended} sets minimumReleaseAgeBehaviour to 'timestamp-required'",
+        ),
+        (
+            "the digest rule widened to dated update types",
+            with_rule(
+                {
+                    "matchUpdateTypes": ["digest", "minor"],
+                    "minimumReleaseAgeBehaviour": "timestamp-optional",
+                }
+            ),
+            not_digest_only,
+        ),
+        (
+            "the digest rule with no update-type matcher",
+            with_rule({"minimumReleaseAgeBehaviour": "timestamp-optional"}),
+            not_digest_only,
+        ),
+        (
+            "the digest rule carrying a floor of its own",
+            with_rule(
+                {
+                    "matchUpdateTypes": ["digest"],
+                    "matchPackageNames": ["*"],
+                    "minimumReleaseAge": "7 days",
+                    "minimumReleaseAgeBehaviour": "timestamp-optional",
+                }
+            ),
+            "sets minimumReleaseAgeBehaviour and minimumReleaseAge together",
+        ),
+        (
+            "the digest rule removed",
+            without_digest_rule(),
+            no_digest_rule,
+        ),
+        (
+            "the digest rule narrowed to some digest updates",
+            narrowed_digest_rule(),
+            no_digest_rule,
         ),
         (
             "a manager block lifting the floor",
@@ -1027,6 +1169,16 @@ def variants(cfg: Config) -> tuple[Breaks, Keeps]:
             "a '*' rule placed before the action-ref exemption",
             with_rule(
                 {"matchPackageNames": ["*"], "minimumReleaseAge": "7 days"}, at=0
+            ),
+        ),
+        (
+            "a second digest rule narrowed to one manager",
+            with_rule(
+                {
+                    "matchManagers": ["dockerfile"],
+                    "matchUpdateTypes": ["digest"],
+                    "minimumReleaseAgeBehaviour": "timestamp-optional",
+                }
             ),
         ),
         (
