@@ -85,7 +85,7 @@ FIRST_PARTY_SCOPES = {"/^@shuttering//"}
 # for as long as the branch exists. Renovate matches names as case-insensitive
 # globs and as regexes, so "*", "nanohype/*", "/^nanohype\//" and "!lodash" put
 # the floor back from a later rule as surely as the ref's own name does.
-FIRST_PARTY_ACTION_REFS = {"nanohype/.github"}
+FIRST_PARTY_ACTION_REFS = {"nanohype/.github", "nanohype/nanohype"}
 
 # Where each floor setting may appear below the top level. packageRules[] stands
 # for any top-level packageRule. Renovate merges manager blocks, update-type
@@ -683,6 +683,14 @@ def variants(cfg: Config) -> tuple[Breaks, Keeps]:
         ]
         return d
 
+    def action_exemption_naming(names: list[str]) -> Config:
+        d = copy()
+        for r in d.get("packageRules") or []:
+            if set(r.get("matchPackageNames") or []) & FIRST_PARTY_ACTION_REFS:
+                r["matchPackageNames"] = list(names)
+                r["matchDepNames"] = list(names)
+        return d
+
     def narrowed_action_exemption() -> Config:
         d = without_action_exemption()
         d["packageRules"].append(
@@ -1066,6 +1074,16 @@ def variants(cfg: Config) -> tuple[Breaks, Keeps]:
             "no packageRule removes the floor from every update of nanohype/.github",
         ),
         (
+            "the action-ref exemption leaving out one first-party ref",
+            action_exemption_naming(["nanohype/.github"]),
+            "no packageRule removes the floor from every update of nanohype/nanohype",
+        ),
+        (
+            "a later '*' rule that excludes only one action ref by name",
+            later_floor(matchPackageNames=["*", "!nanohype/.github"]),
+            "can reach nanohype/nanohype and sets minimumReleaseAge to '7 days'",
+        ),
+        (
             "the action-ref exemption overridden by a later rule naming it",
             later_floor(
                 matchManagers=["github-actions"], matchPackageNames=["nanohype/.github"]
@@ -1162,8 +1180,13 @@ def variants(cfg: Config) -> tuple[Breaks, Keeps]:
             later_floor(matchManagers=["npm"], matchPackageNames=["/^@aws-sdk\\//"]),
         ),
         (
-            "a later '*' rule that excludes the action ref by name",
-            later_floor(matchPackageNames=["*", "!nanohype/.github"]),
+            "a later '*' rule that excludes every action ref by name",
+            later_floor(
+                matchPackageNames=[
+                    "*",
+                    *(f"!{ref}" for ref in sorted(FIRST_PARTY_ACTION_REFS)),
+                ]
+            ),
         ),
         (
             "a '*' rule placed before the action-ref exemption",
