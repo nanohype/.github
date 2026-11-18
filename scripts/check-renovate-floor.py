@@ -69,11 +69,11 @@ FIRST_PARTY_SCOPES = {"/^@shuttering//"}
 # pnpm install never reads an action ref, so unlike a scope above, an entry here
 # has no install-time half. What it commits to is confinement: the exempting rule
 # names action refs and nothing else, matches only the github-actions manager,
-# and matches the same names as depNames. The github-actions extractor gives a
-# ref with an explicit host, github.com included, the packageName owner/repo and
-# a depName that carries the host, so only the depName tells this org's
-# repository from a namesake on another server, and a first-party ref is written
-# without a host.
+# matches only depTypes in ACTION_REF_DEP_TYPES, and matches the same names as
+# depNames. The github-actions extractor gives a ref with an explicit host,
+# github.com included, the packageName owner/repo and a depName that carries the
+# host, so only the depName tells this org's repository from a namesake on
+# another server, and a first-party ref is written without a host.
 #
 # Entries are exact names, so an exemption covers the repository that was
 # reviewed and nothing else; a pattern such as "/\/\.github$/" would also match
@@ -85,7 +85,19 @@ FIRST_PARTY_SCOPES = {"/^@shuttering//"}
 # for as long as the branch exists. Renovate matches names as case-insensitive
 # globs and as regexes, so "*", "nanohype/*", "/^nanohype\//" and "!lodash" put
 # the floor back from a later rule as surely as the ref's own name does.
-FIRST_PARTY_ACTION_REFS = {"nanohype/.github"}
+FIRST_PARTY_ACTION_REFS = {"nanohype/.github", "nanohype/nanohype"}
+
+# The depTypes the github-actions extractor gives a repository ref: "workflow"
+# for a reusable workflow under .github/workflows/ and "action" for any other
+# ref. The same manager reports Docker images under other depTypes, among them
+# an image in a docker:// step, a Docker action's runs.image, a job container, a
+# service, or an image input of an action Renovate knows, such as
+# aws-actions/amazon-ecs-render-task-definition. It names each after its image,
+# so a Docker Hub image named nanohype/nanohype matches that action ref's name
+# exactly while belonging to whoever owns the namespace on Docker Hub. Allowing
+# only these depTypes keeps such an image under the floor whichever depType the
+# manager gives it.
+ACTION_REF_DEP_TYPES = ("action", "workflow")
 
 # Where each floor setting may appear below the top level. packageRules[] stands
 # for any top-level packageRule. Renovate merges manager blocks, update-type
@@ -397,21 +409,30 @@ def check_action_ref_exemption(i: int, rule: Config, names: list[str]) -> None:
     refs = [n for n in names if n in FIRST_PARTY_ACTION_REFS]
     if not refs:
         return
+    dep_types = rule.get("matchDepTypes")
     confined = (
         len(refs) == len(names)
         and rule.get("matchManagers") == ["github-actions"]
         and rule.get("matchDepNames") == names
+        and isinstance(dep_types, list)
+        and all(t in ACTION_REF_DEP_TYPES for t in dep_types)
     )
     if not confined:
         raise Rejected(
             f"packageRules[{i}] removes the floor for action refs {refs} but is "
             f"not confined to them: an action-ref exemption names only action "
-            f'refs, sets matchManagers to ["github-actions"], and sets '
-            f"matchDepNames to the same names as matchPackageNames. The exemption "
-            f"holds for a ref to this org's own repository, which has no release "
-            f"to age. Another manager's dependency is no such ref, and a ref with "
-            f"an explicit host shares its packageName with refs on servers this "
-            f"org does not own; only the depName tells them apart."
+            f'refs, sets matchManagers to ["github-actions"], sets matchDepNames '
+            f"to the same names as matchPackageNames, and sets matchDepTypes to "
+            f"depTypes from {list(ACTION_REF_DEP_TYPES)} and nothing else. The "
+            f"exemption holds for a ref to this org's own repository, which has "
+            f"no release to age. Another manager's dependency is no such ref. "
+            f"Neither is a Docker image the github-actions manager reports, from "
+            f"a docker:// step, a job container, a service or elsewhere: it is "
+            f"named after the image, so a Docker Hub image can carry a "
+            f"first-party ref's name, and only a repository ref gets a depType "
+            f"from {list(ACTION_REF_DEP_TYPES)}. A ref with an explicit host "
+            f"shares its packageName with refs on servers this org does not own; "
+            f"only the depName tells them apart."
         )
 
 
@@ -468,16 +489,19 @@ def check_package_rules(cfg: Config) -> list[str]:
     ]
 
 
-def ref_update(ref: str) -> dict[str, str]:
-    """What an update of a first-party action ref shows the matchers this check reads.
+def ref_update(ref: str) -> dict[str, tuple[str, ...]]:
+    """The values an update of a first-party action ref can show each matcher this check reads.
 
     The github-actions extractor gives a ref with no host the depName
-    owner/repo, and the packageName defaults to the depName.
+    owner/repo, and the packageName defaults to the depName. An update carries
+    one depType from ACTION_REF_DEP_TYPES, depending on whether the line it
+    updates calls an action or a reusable workflow.
     """
     return {
-        "matchManagers": "github-actions",
-        "matchPackageNames": ref,
-        "matchDepNames": ref,
+        "matchManagers": ("github-actions",),
+        "matchPackageNames": (ref,),
+        "matchDepNames": (ref,),
+        "matchDepTypes": ACTION_REF_DEP_TYPES,
     }
 
 
@@ -505,15 +529,17 @@ def may_match(patterns: object, value: str) -> bool:
 
 
 def reaches(rule: Config, ref: str) -> bool:
-    """Whether rule could apply to an update of ref: no matcher this check reads rules it out.
+    """Whether rule could apply to some update of ref: no matcher this check reads rules it out.
 
-    A regex, a glob or a negation can match a name this check cannot predict,
-    and a rule with none of these matchers reaches every dependency its other
-    matchers allow, so each of those counts as reaching the ref.
+    A matcher rules the ref out only when it can match none of the values an
+    update of the ref shows it. A regex, a glob or a negation can match a value
+    this check cannot predict, and a rule with none of these matchers reaches
+    every dependency its other matchers allow, so each of those counts as
+    reaching the ref.
     """
     return all(
-        may_match(rule[key], value)
-        for key, value in ref_update(ref).items()
+        any(may_match(rule[key], value) for value in values)
+        for key, values in ref_update(ref).items()
         if key in rule
     )
 
@@ -521,17 +547,17 @@ def reaches(rule: Config, ref: str) -> bool:
 def names_exactly(rule: Config, ref: str) -> bool:
     """Whether rule applies to every update of ref.
 
-    Each matcher this check reads lists ref, or github-actions, by its exact
-    text, and the rule has no other matcher to narrow it.
+    Each matcher this check reads lists every value an update of ref can show
+    it, by its exact text, and the rule has no other matcher to narrow it.
     """
     facts = ref_update(ref)
     if {key for key in rule if key.startswith("match")} != set(facts):
         return False
     return all(
         isinstance(rule[key], list)
-        and value in rule[key]
+        and all(value in rule[key] for value in values)
         and all(isinstance(p, str) and exact(p) for p in rule[key])
-        for key, value in facts.items()
+        for key, values in facts.items()
     )
 
 
@@ -567,11 +593,13 @@ def check_action_refs_exempt(cfg: Config) -> list[str]:
     exempt when the last rule that can reach it and sets minimumReleaseAge
     names it exactly and sets null. A rule that can reach the ref but does not
     name it exactly cannot be relied on to remove the floor, and can put it
-    back.
+    back. With no exact exemption at all, that is the defect to report, whatever
+    floor rule comes last.
     """
     rules = cfg.get("packageRules") or []
     for ref in sorted(FIRST_PARTY_ACTION_REFS):
         last: tuple[int, object] | None = None
+        exempted = False
         for i, rule in enumerate(rules):
             check_renames(i, rule, ref)
             if "minimumReleaseAge" not in rule or not reaches(rule, ref):
@@ -579,11 +607,13 @@ def check_action_refs_exempt(cfg: Config) -> list[str]:
             value = rule["minimumReleaseAge"]
             if value is not None or names_exactly(rule, ref):
                 last = (i, value)
-        if last is None:
+                exempted = exempted or value is None
+        if last is None or not exempted:
             raise Rejected(
                 f"no packageRule removes the floor from every update of {ref}. A "
                 f"rule that does lists it exactly in matchPackageNames and "
-                f"matchDepNames, and github-actions in matchManagers, with no other "
+                f"matchDepNames, github-actions in matchManagers, and every depType "
+                f"in {list(ACTION_REF_DEP_TYPES)} in matchDepTypes, with no other "
                 f"matcher. Its digest updates carry no release timestamp, so the "
                 f"floor holds them, and the github-actions group branch they land "
                 f"in, pending for as long as the branch exists."
@@ -597,8 +627,9 @@ def check_action_refs_exempt(cfg: Config) -> list[str]:
                 f"digest updates and holds the github-actions group branch "
                 f"pending. A rule that sets a floor after the exemption rules the "
                 f"ref out with an exact matchManagers, matchPackageNames or "
-                f"matchDepNames list that does not name it, or with a negation of "
-                f"its exact name, or moves above the exemption."
+                f"matchDepNames list that does not name it, an exact matchDepTypes "
+                f"list that names no depType in {list(ACTION_REF_DEP_TYPES)}, or a "
+                f"negation of its exact name, or moves above the exemption."
             )
 
     refs = sorted(FIRST_PARTY_ACTION_REFS)
@@ -664,6 +695,7 @@ def variants(cfg: Config) -> tuple[Breaks, Keeps]:
         name: str,
         managers: tuple[str, ...] | None = ("github-actions",),
         dep_names: bool | list[str] = True,
+        dep_types: tuple[str, ...] = ACTION_REF_DEP_TYPES,
     ) -> Config:
         rule: Config = {"matchPackageNames": [name], "minimumReleaseAge": None}
         if managers is not None:
@@ -672,6 +704,7 @@ def variants(cfg: Config) -> tuple[Breaks, Keeps]:
             rule["matchDepNames"] = [name]
         elif dep_names:
             rule["matchDepNames"] = list(dep_names)
+        rule["matchDepTypes"] = list(dep_types)
         return with_rule(rule)
 
     def without_action_exemption() -> Config:
@@ -683,16 +716,29 @@ def variants(cfg: Config) -> tuple[Breaks, Keeps]:
         ]
         return d
 
+    def edited_action_exemption(**keys: object) -> Config:
+        """cfg with each key of its action-ref exemption set, or removed when None."""
+        d = copy()
+        for r in d.get("packageRules") or []:
+            if set(r.get("matchPackageNames") or []) & FIRST_PARTY_ACTION_REFS:
+                for key, value in keys.items():
+                    if value is None:
+                        r.pop(key, None)
+                    else:
+                        r[key] = value
+        return d
+
+    def action_exemption_naming(names: list[str]) -> Config:
+        return edited_action_exemption(
+            matchPackageNames=list(names), matchDepNames=list(names)
+        )
+
     def narrowed_action_exemption() -> Config:
-        d = without_action_exemption()
-        d["packageRules"].append(
-            {
-                "matchManagers": ["github-actions"],
-                "matchPackageNames": ["nanohype/.github"],
-                "matchDepNames": ["nanohype/.github"],
-                "matchUpdateTypes": ["major"],
-                "minimumReleaseAge": None,
-            }
+        return edited_action_exemption(matchUpdateTypes=["major"])
+
+    def below_earlier_floor(d: Config) -> Config:
+        d["packageRules"].insert(
+            0, {"matchPackageNames": ["*"], "minimumReleaseAge": "7 days"}
         )
         return d
 
@@ -744,6 +790,7 @@ def variants(cfg: Config) -> tuple[Breaks, Keeps]:
         "no packageRule sets minimumReleaseAgeBehaviour to timestamp-optional"
     )
     refloored = "can reach nanohype/.github and sets minimumReleaseAge to '7 days'"
+    unexempt = "no packageRule removes the floor from every update of nanohype/.github"
     renamed = "sets overridePackageName and can reach nanohype/.github"
 
     breaks: Breaks = [
@@ -1049,12 +1096,32 @@ def variants(cfg: Config) -> tuple[Breaks, Keeps]:
             not_confined,
         ),
         (
+            "the action-ref exemption without its depType limit, so it also "
+            "matches Docker images named like a first-party ref",
+            edited_action_exemption(matchDepTypes=None),
+            not_confined,
+        ),
+        (
+            "an action-ref exemption that also matches Docker image depTypes",
+            action_exemption(
+                "nanohype/.github",
+                dep_types=(*ACTION_REF_DEP_TYPES, "docker", "container", "service"),
+            ),
+            not_confined,
+        ),
+        (
+            "an action-ref exemption matching depTypes by pattern",
+            action_exemption("nanohype/.github", dep_types=("*",)),
+            not_confined,
+        ),
+        (
             "an action-ref exemption that also names a registry scope",
             with_rule(
                 {
                     "matchManagers": ["github-actions"],
                     "matchPackageNames": ["nanohype/.github", "/^@shuttering//"],
                     "matchDepNames": ["nanohype/.github", "/^@shuttering//"],
+                    "matchDepTypes": list(ACTION_REF_DEP_TYPES),
                     "minimumReleaseAge": None,
                 }
             ),
@@ -1063,7 +1130,17 @@ def variants(cfg: Config) -> tuple[Breaks, Keeps]:
         (
             "the action-ref exemption removed",
             without_action_exemption(),
-            "no packageRule removes the floor from every update of nanohype/.github",
+            unexempt,
+        ),
+        (
+            "the action-ref exemption leaving out one first-party ref",
+            action_exemption_naming(["nanohype/.github"]),
+            "no packageRule removes the floor from every update of nanohype/nanohype",
+        ),
+        (
+            "a later '*' rule that excludes only one action ref by name",
+            later_floor(matchPackageNames=["*", "!nanohype/.github"]),
+            "can reach nanohype/nanohype and sets minimumReleaseAge to '7 days'",
         ),
         (
             "the action-ref exemption overridden by a later rule naming it",
@@ -1105,7 +1182,37 @@ def variants(cfg: Config) -> tuple[Breaks, Keeps]:
         (
             "the action-ref exemption narrowed to some of the ref's updates",
             narrowed_action_exemption(),
-            "no packageRule removes the floor from every update of nanohype/.github",
+            unexempt,
+        ),
+        *(
+            (
+                f"the action-ref exemption leaving out the {t} depType",
+                edited_action_exemption(
+                    matchDepTypes=[u for u in ACTION_REF_DEP_TYPES if u != t]
+                ),
+                unexempt,
+            )
+            for t in ACTION_REF_DEP_TYPES
+        ),
+        (
+            "the action-ref exemption leaving out a depType, below an earlier '*' floor",
+            below_earlier_floor(
+                edited_action_exemption(matchDepTypes=[ACTION_REF_DEP_TYPES[0]])
+            ),
+            unexempt,
+        ),
+        *(
+            (
+                f"the action-ref exemption overridden by a later rule for the {t} depType",
+                later_floor(matchPackageNames=["*"], matchDepTypes=[t]),
+                refloored,
+            )
+            for t in ACTION_REF_DEP_TYPES
+        ),
+        (
+            "the action-ref exemption overridden by a later rule negating a depType",
+            later_floor(matchPackageNames=["*"], matchDepTypes=["!docker"]),
+            refloored,
         ),
         (
             "the action ref renamed out from under the exemption",
@@ -1162,8 +1269,20 @@ def variants(cfg: Config) -> tuple[Breaks, Keeps]:
             later_floor(matchManagers=["npm"], matchPackageNames=["/^@aws-sdk\\//"]),
         ),
         (
-            "a later '*' rule that excludes the action ref by name",
-            later_floor(matchPackageNames=["*", "!nanohype/.github"]),
+            "a later '*' rule that excludes every action ref by name",
+            later_floor(
+                matchPackageNames=[
+                    "*",
+                    *(f"!{ref}" for ref in sorted(FIRST_PARTY_ACTION_REFS)),
+                ]
+            ),
+        ),
+        (
+            "a later '*' rule confined to Docker image depTypes",
+            later_floor(
+                matchPackageNames=["*"],
+                matchDepTypes=["docker", "container", "service"],
+            ),
         ),
         (
             "a '*' rule placed before the action-ref exemption",
